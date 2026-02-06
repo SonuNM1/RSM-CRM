@@ -17,7 +17,7 @@ app.use(cors())
 
 const startServer = async () => {
     try {
-        connectDB() ; 
+        await connectDB() ; 
 
         app.listen(PORT, () => {
             console.log(chalk.bold.green(`Server running on http://localhost:${PORT}`))
@@ -29,3 +29,5 @@ const startServer = async () => {
 }
 
 startServer() ; 
+
+// the eyes chico, they never lie 
