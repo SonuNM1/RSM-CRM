@@ -7,6 +7,9 @@ const userSchema = new mongoose.Schema({
         unique: true, 
         lowercase: true 
     }, 
+    name: {
+        type: String // we'll fill this when invite is accepted 
+    }, 
     password: {
         type: String, 
         select: false // never auto-fetch password. By default, Mongoose returns all fields when you query a document. This field won't be returned in queries unless we explicitly ask for it 
@@ -27,8 +30,23 @@ const userSchema = new mongoose.Schema({
     inviteToken: {
         type: String
     }, 
-    inviteExpiredAt: {
-        type: String 
+    inviteExpiresAt: {
+        type: Date 
+    },
+    refreshTokens: [
+        {
+            token: {type: String, required: true},
+            expiresAt: {
+                type: Date, 
+                default: () => new Date(Date.now() + 7*24*60*60*1000)
+            }
+        }
+    ], 
+    resetPasswordOTP: {
+        type: String
+    }, 
+    resetPasswordOTPExpires: {
+        type: Date 
     }
 }, {timestamps: true})
 
