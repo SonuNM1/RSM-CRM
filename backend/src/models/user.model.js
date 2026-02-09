@@ -24,6 +24,12 @@ const userSchema = new mongoose.Schema({
         enum: ["INVITED", "ACTIVE", "SUSPENDED"],
         default: "INVITED"
     }, 
+    inviteToken: {
+        type: String
+    }, 
+    inviteExpiredAt: {
+        type: String 
+    }
 }, {timestamps: true})
 
 export default mongoose.model("User", userSchema)

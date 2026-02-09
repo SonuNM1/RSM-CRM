@@ -10,3 +10,10 @@ Admin-invited users > self-registration in CRM (otherwise any person with email 
 3. User sets password , then complete profile (like name)
 4. User can login 
 5. Roles/Executives - Admin, Sales Executive, Email executive 
+
+## Bootstrap Super_Admin 
+
+- Hardcoded admin will be bad, not sellable 
+- Admin can self register (not enterprise): anyone would become admin, CRM dont do this 
+
+- Employees and Admin will be invited by the Super_Admin 
