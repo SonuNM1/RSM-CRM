@@ -1,19 +1,25 @@
-import nodemailer from "nodemailer";
+import sgMail from "@sendgrid/mail";
 
-export const sendEmail = async ({ to, subject, text }) => {
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: process.env.SMTP_PORT,
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
+const sendEmail = async ({ to, subject, text, html }) => {
+  if (!process.env.SENDGRID_API_KEY) {
+    throw new Error("SENDGRID_API_KEY not found");
+  }
 
-  await transporter.sendMail({
-    from: process.env.SMTP_USER,
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+  const msg = {
     to,
+    from: process.env.SENDGRID_FROM_EMAIL,
     subject,
     text,
-  });
+    html,
+  };
+
+  await sgMail.send(msg);
 };
+
+export default sendEmail;
+
+
+console.log("SENDGRID KEY in service:", process.env.SENDGRID_API_KEY?.slice(0, 5));
+console.log("FROM EMAIL:", process.env.SENDGRID_FROM_EMAIL);

@@ -8,7 +8,12 @@ import {
 import { protect } from "../middleware/auth.middleware.js"
 import {allowRoles} from "../middleware/role.middleware.js"
 import { userLogin } from "../controllers/user.controller.js"
-import { requestPasswordOTP, resetPasswordWithOTP } from "../controllers/password.controller.js"
+
+import {
+    requestPasswordOTP, 
+    validatePasswordOTP, 
+    resetPassword
+} from "../controllers/password.controller.js" 
 
 const router = express.Router() ; 
 
@@ -38,6 +43,10 @@ router.post("/forgot-password", requestPasswordOTP) ;
 
 // Reset password 
 
-router.post("/reset-password", resetPasswordWithOTP)
+router.post("/forgot-password/request-otp", requestPasswordOTP) ; 
+
+router.post("/forgot-password/validate-otp", validatePasswordOTP) ; 
+
+router.post("/forgot-password/reset-password", resetPassword)
 
 export default router; 

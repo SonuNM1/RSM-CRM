@@ -47,7 +47,23 @@ const userSchema = new mongoose.Schema({
     }, 
     resetPasswordOTPExpires: {
         type: Date 
+    },  
+
+    // Rate limit fields 
+
+    otpRequestCount: {
+        type: Number, 
+        default: 0
+    },
+    otpRequestWindowStart: {
+        type: Date, 
+        default: null 
+    }, 
+    lastOTPRequestAt: {
+        type: Date, 
+        default: null 
     }
+
 }, {timestamps: true})
 
 export default mongoose.model("User", userSchema)

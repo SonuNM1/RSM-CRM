@@ -43,7 +43,7 @@ export const inviteUser = async (req, res) => {
       message: "Invite sent successfully",
     });
   } catch (error) {
-    console.error(chalk.red.error("Invite user error: ", error));
+    console.error(chalk.bold.red("Invite user error: ", error));
     return res.status(500).json({
       message: "Internal Server Error",
     });

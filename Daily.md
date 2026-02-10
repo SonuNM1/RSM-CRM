@@ -9,3 +9,14 @@
 - Refresh token in user and admin login 
 - Logout 
 
+## 9th Feb, 2025 
+
+- OTP rate limit 
+- Gmail -> SendGrid -> AWS SES 
+- SMTP Provider (Gmail SMTP, SendGrid, AWS SES)
+
+- implemented SendGrid (product of Twilio)
+- Request OTP 
+- Validate OTP 
+- Reset password 
+- Email templates 
