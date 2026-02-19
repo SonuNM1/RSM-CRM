@@ -24,11 +24,23 @@ export const requestPasswordOTP = async (req, res) => {
       });
     }
 
-    // Rate limit check 
+    // If OTP already exists & valid -> block
 
-    const rateLimit = checkOTPRateLimit(user) ; 
+    if (
+      user.resetPasswordOTP &&
+      user.resetPasswordOTPExpires &&
+      user.resetPasswordOTPExpires.getTime() > Date.now()
+    ) {
+      return res.status(400).json({
+        message: "OTP already sent. Please wait before requesting a new one.",
+      });
+    }
 
-    if(!rateLimit.allowed){
+    // Rate limit check
+
+    const rateLimit = checkOTPRateLimit(user);
+
+    if (!rateLimit.allowed) {
       return res.status(429).json({ message: rateLimit.message });
     }
 
@@ -43,22 +55,18 @@ export const requestPasswordOTP = async (req, res) => {
     user.resetPasswordOTP = otp;
     user.resetPasswordOTPExpires = expiry;
 
-    // Updating rate limit data 
+    user.lastOTPRequestAt = new Date(); // updating cooldown
+    user.otpRequestCount = (user.otpRequestCount || 0) + 1;
 
-    user.otpRequestCount += 1;
-    user.lastOTPRequestAt = new Date();
-
-    await user.save();
-
-    // send OTP via email
+    await user.save() ; 
 
     await sendEmail({
       to: user.email,
       subject: "Your Password Reset OTP",
       html: resetPasswordOTPTemplate({
-        name: user.name, 
-        otp, 
-      })
+        name: user.name,
+        otp,
+      }),
     });
 
     return res.status(200).json({ message: "OTP sent to your email" });
@@ -85,13 +93,13 @@ export const validatePasswordOTP = async (req, res) => {
       });
     }
 
-    // OTP Validation 
+    // OTP Validation
 
     if (
-      !user.resetPasswordOTP || 
+      !user.resetPasswordOTP ||
       user.resetPasswordOTP !== otp ||
       !user.resetPasswordOTPExpires ||
-      user.resetPasswordOTPExpires < Date.now()
+      user.resetPasswordOTPExpires.getTime() < Date.now()
     ) {
       return res.status(400).json({
         message: "Invalid or expired OTP",

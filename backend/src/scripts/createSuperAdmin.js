@@ -22,6 +22,7 @@ const createSuperAdmin = async () => {
         connectDB() ;  
 
         const email = "sonu.mahto362000@gmail.com" ; 
+        const name = "" ; 
         const password = "123456" ; 
         const role = "Super_Admin" ; 
 
@@ -42,6 +43,7 @@ const createSuperAdmin = async () => {
         // creating the user - Super_Admin
 
         await User.create({
+            name, 
             email, 
             password: hashedPassword, 
             role, 

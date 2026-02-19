@@ -20,6 +20,3 @@ const sendEmail = async ({ to, subject, text, html }) => {
 
 export default sendEmail;
 
-
-console.log("SENDGRID KEY in service:", process.env.SENDGRID_API_KEY?.slice(0, 5));
-console.log("FROM EMAIL:", process.env.SENDGRID_FROM_EMAIL);

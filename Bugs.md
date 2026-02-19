@@ -1,0 +1,2 @@
+- Remember me 
+- my profile (data shows only on reload)

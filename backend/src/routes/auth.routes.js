@@ -1,21 +1,28 @@
 import express from "express"
 import {
-    inviteUser, 
+    inviteUser,
+    verifyInviteToken, 
     acceptInvite, 
     adminLogin,
-    logout
+    logout,
+    getMe,
+    refreshAccessToken
 } from "../controllers/auth.controller.js"
 import { protect } from "../middleware/auth.middleware.js"
 import {allowRoles} from "../middleware/role.middleware.js"
-import { userLogin } from "../controllers/user.controller.js"
+import { updateUser, userLogin } from "../controllers/user.controller.js"
 
 import {
     requestPasswordOTP, 
     validatePasswordOTP, 
-    resetPassword
+    resetPassword,
 } from "../controllers/password.controller.js" 
 
 const router = express.Router() ; 
+
+// refresh token 
+
+router.post("/refresh", refreshAccessToken) ; 
 
 // admin login
 
@@ -24,6 +31,10 @@ router.post("/admin/login", adminLogin)
 // Admin invites users (with role)
 
 router.post("/admin/invite", protect, allowRoles("Super_Admin", "Admin"), inviteUser) ; 
+
+// verifying invite token 
+
+router.get("/invite/verify", verifyInviteToken);
 
 // User accepts invite 
 
@@ -48,5 +59,11 @@ router.post("/forgot-password/request-otp", requestPasswordOTP) ;
 router.post("/forgot-password/validate-otp", validatePasswordOTP) ; 
 
 router.post("/forgot-password/reset-password", resetPassword)
+
+// profile route 
+
+router.get("/me", protect, getMe) ; 
+
+
 
 export default router; 

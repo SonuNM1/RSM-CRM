@@ -5,6 +5,9 @@ import connectDB from "./src/config/db.js";
 import cors from "cors" ; 
 import chalk from "chalk" ; 
 import authRoutes from "./src/routes/auth.routes.js"
+import userRoutes from "./src/routes/user.routes.js"
+import leadRoutes from "./src/routes/lead.routes.js"
+import cookieParser from "cookie-parser"
 
 const app = express() ; 
 const PORT = process.env.PORT || 5000 ; 
@@ -12,7 +15,12 @@ const PORT = process.env.PORT || 5000 ;
 // middlewares 
 
 app.use(express.json()) ; 
-app.use(cors())
+app.use(cookieParser())
+
+app.use(cors({
+    origin: "http://localhost:8080", 
+    credentials: true 
+}))
 
 // for test 
 
@@ -23,6 +31,8 @@ app.get('/', (req, res) => {
 // Routes 
 
 app.use("/api/auth/", authRoutes) ;
+app.use("/api/users", userRoutes) ; 
+app.use("/api/leads", leadRoutes) ; 
 
 // server runs only if DB connects 
 

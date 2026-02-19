@@ -15,10 +15,10 @@ export const inviteUserTemplate = ({ name, role, inviteLink }) => {
         You’re Invited!
       </h2>
 
-      <p>Hi <strong>${name || "there"}</strong>,</p>
+      <p>Hey there,</p>
 
       <p>
-        You have been invited to join <strong>Your Company CRM</strong> as
+        You have been invited to join <strong>RSM CRM</strong> as
         <strong>${role}</strong>.
       </p>
 

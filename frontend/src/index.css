@@ -1,0 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+@layer base {
+  :root {
+    --background: 220 20% 97%;
+    --foreground: 220 25% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 25% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 25% 10%;
+
+    --primary: 220 70% 18%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 15% 92%;
+    --secondary-foreground: 220 25% 10%;
+
+    --muted: 220 15% 94%;
+    --muted-foreground: 220 10% 50%;
+
+    --accent: 175 75% 40%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 15% 90%;
+    --input: 220 15% 90%;
+    --ring: 175 75% 40%;
+
+    --radius: 0.625rem;
+
+    /* CRM custom tokens */
+    --crm-navy: 220 70% 12%;
+    --crm-navy-light: 220 50% 22%;
+    --crm-teal: 175 75% 40%;
+    --crm-teal-light: 175 65% 55%;
+    --crm-success: 152 60% 45%;
+    --crm-warning: 38 92% 55%;
+    --crm-info: 210 80% 55%;
+    --crm-surface: 220 25% 96%;
+    --crm-sidebar: 220 70% 10%;
+    --crm-sidebar-hover: 220 55% 18%;
+    --crm-sidebar-active: 175 75% 40%;
+
+    --sidebar-background: 220 70% 10%;
+    --sidebar-foreground: 220 15% 85%;
+    --sidebar-primary: 175 75% 40%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 55% 18%;
+    --sidebar-accent-foreground: 220 15% 85%;
+    --sidebar-border: 220 50% 18%;
+    --sidebar-ring: 175 75% 40%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  }
+}
+
+@layer utilities {
+  .auth-gradient {
+    background: linear-gradient(135deg, hsl(220 70% 10%) 0%, hsl(220 60% 16%) 40%, hsl(195 65% 18%) 100%);
+  }
+
+  .teal-glow {
+    box-shadow: 0 0 40px hsl(175 75% 40% / 0.15), 0 0 80px hsl(175 75% 40% / 0.05);
+  }
+
+  .card-shadow {
+    box-shadow: 0 1px 3px hsl(220 25% 10% / 0.06), 0 4px 12px hsl(220 25% 10% / 0.04);
+  }
+
+  .card-shadow-hover {
+    box-shadow: 0 2px 8px hsl(220 25% 10% / 0.08), 0 8px 24px hsl(220 25% 10% / 0.06);
+  }
+
+  .stat-card-gradient {
+    background: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(220 20% 98%) 100%);
+  }
+}

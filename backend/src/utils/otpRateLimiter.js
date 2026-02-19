@@ -5,9 +5,10 @@ import {
 } from "../constants/otp.js";
 
 export const checkOTPRateLimit = (user) => {
+
   const now = Date.now();
 
-  //  Cooldown check
+  //  Cooldown check (1 minute gap)
 
   if (
     user.lastOTPRequestAt &&
@@ -19,7 +20,7 @@ export const checkOTPRateLimit = (user) => {
     };
   }
 
-  //  Window reset
+  //  Window reset - reset after 15 minutes 
   
   if (
     !user.otpRequestWindowStart ||
@@ -27,9 +28,13 @@ export const checkOTPRateLimit = (user) => {
   ) {
     user.otpRequestWindowStart = new Date(now);
     user.otpRequestCount = 0;
+
+    // resetting cooldown timestamp as well 
+
+    user.lastOTPRequestAt = null ; 
   }
 
-  // Limit exceeded
+  // Limit exceeded (max 3 OTPs)
 
   if (user.otpRequestCount >= OTP_LIMIT) {
     return {

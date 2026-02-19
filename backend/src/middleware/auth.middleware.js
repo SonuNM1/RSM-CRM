@@ -3,7 +3,8 @@ import User from "../models/user.model.js"
 
 export const protect = async (req, res, next) => {
     try{
-        const token = req.headers.authorization?.split(" ")[1] ; // extracting token from the cookies 
+
+        const token = req.cookies.accessToken ; // access token from httpOnly cookie
 
         if(!token){
             return res.status(401).json({
@@ -13,18 +14,25 @@ export const protect = async (req, res, next) => {
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET) ; 
 
-        const user = await User.findById(decoded.userId) ; 
+        const user = await User.findById(decoded.userId) ;
 
-        if(!user || user.status !="ACTIVE"){
+        if(!user || user.status !== "ACTIVE"){
             return res.status(403).json({
                 message: "Access denied"
             })
         }
 
-        req.user = user ; 
-        next() ; 
+        req.user = {
+            _id: user._id, 
+            email: user.email, 
+            role: user.role, 
+            department: user.department, 
+            status: user.status
+        } ; 
+        next() ;   
 
     }catch(error){
+        console.log("Protect middleware error: ", error)
         res.status(401).json({
             message: "Invalid token"
         })

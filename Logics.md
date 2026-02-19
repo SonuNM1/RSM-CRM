@@ -17,3 +17,4 @@ Admin-invited users > self-registration in CRM (otherwise any person with email 
 - Admin can self register (not enterprise): anyone would become admin, CRM dont do this 
 
 - Employees and Admin will be invited by the Super_Admin 
+
