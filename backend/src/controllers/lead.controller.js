@@ -49,9 +49,9 @@ export const submitLeads = async (req, res) => {
       const email = lead.email.toLowerCase();
       const website = normalizeWebsite(lead.website);
 
-      if(!website){
-        skipped.push(lead) ; 
-        continue ; 
+      if (!website) {
+        skipped.push(lead);
+        continue;
       }
 
       const isDuplicate =
@@ -95,35 +95,34 @@ export const submitLeads = async (req, res) => {
   } catch (err) {
     console.error("Submit leads error:", err);
 
-    // Mongo duplicate key error 
+    // Mongo duplicate key error
 
-    if(err.code === 11000){
+    if (err.code === 11000) {
       return res.status(409).json({
-        success: false, 
-        message: "Duplicate lead detected", 
-        error: err.keyValue 
-      })
+        success: false,
+        message: "Duplicate lead detected",
+        error: err.keyValue,
+      });
     }
 
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
-// lead statuses - used for filters and dropdowns 
+// lead statuses - used for filters and dropdowns
 
 export const getLeadStatuses = async (req, res) => {
   return res.status(200).json({
-    success: true, 
-    statuses: LEAD_STATUSES
-  })
-}
+    success: true,
+    statuses: LEAD_STATUSES,
+  });
+};
 
 // Fetch the leads - filter, pagination, search
 
 export const getLeads = async (req, res) => {
   try {
-    
-    const query = buildLeadQuery(req.query);  // builds a MongoDB query object based on filters (status, submittedBy, dateRange) + search (name/email/website) 
+    const query = buildLeadQuery(req.query); // builds a MongoDB query object based on filters (status, submittedBy, dateRange) + search (name/email/website)
 
     // Pagination - page (current page number), limit (no of items per page), skip (how many docs to skip)
 
@@ -132,7 +131,7 @@ export const getLeads = async (req, res) => {
       req.query.limit,
     );
 
-    // Fetch total count (for pagination UI) - counts total leads matching the query 
+    // Fetch total count (for pagination UI) - counts total leads matching the query
 
     const total = await Lead.countDocuments(query);
 
@@ -140,12 +139,12 @@ export const getLeads = async (req, res) => {
 
     const leads = await Lead.find(query)
       .populate("createdBy", "name email")
-      .sort({ createdAt: -1 })  // newest leads first 
+      .sort({ createdAt: -1 }) // newest leads first
       .skip(skip)
       .limit(limit);
 
     // Response
-    
+
     return res.status(200).json({
       success: true,
       count: leads.length,
@@ -160,6 +159,64 @@ export const getLeads = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to fetch leads",
+    });
+  }
+};
+
+// Get new leads (status: NEW)
+
+export const getNewLeads = async (req, res) => {
+  try {
+    // Only allow status = New
+    if (req.query.status && req.query.status !== "New") {
+      return res.status(400).json({
+        success: false,
+        message: "This endpoint only supports status = New",
+      });
+    }
+
+    const query = {
+      ...buildLeadQuery(req.query),
+      status: "New",
+    };
+
+    const { page, limit, skip } = buildPagination(
+      req.query.page,
+      req.query.limit
+    );
+
+    const total = await Lead.countDocuments(query);
+
+    const leads = await Lead.find(query)
+      .populate("createdBy", "name email")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    // 👇 map Mongo → UI Lead model
+    const normalizedLeads = leads.map((l) => ({
+      id: l._id,
+      name: l.name,
+      email: l.email,
+      website: l.website,
+      submittedBy: l.createdBy?.name ?? "—",
+      submittedDate: l.createdAt,
+      status: l.status ?? "New",
+    }));
+
+    return res.status(200).json({
+      success: true,
+      leads: normalizedLeads,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    });
+  } catch (error) {
+    console.error("Get new leads error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch new leads",
     });
   }
 };
