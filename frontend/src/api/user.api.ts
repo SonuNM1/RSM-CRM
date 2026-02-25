@@ -28,3 +28,11 @@ export const fetchEmployeesAPI = (search?: string) => {
     }
   );
 };
+
+// fetch employees according to roles - searchable dropdown (assign leads page)
+
+export const fetchUsersForFilterAPI = (type: "submittedBy" | "assignTo") => {
+    return api.get("/api/users/filter", {
+        params: {type}
+    })
+}

@@ -3,7 +3,11 @@ import { Navigate, Outlet } from "react-router-dom";
 import FullPageLoader from "@/components/FullPageLoader";
 import { useAuth } from "@/context/AuthContext";
 
-const ProtectedRoute = () => {
+interface ProtectedRouteProps {
+  allowedRoles?: string[];
+}
+
+const ProtectedRoute = ({allowedRoles}: ProtectedRouteProps) => {
   const {user, loading} = useAuth() ; 
 
   if(loading){
@@ -12,6 +16,10 @@ const ProtectedRoute = () => {
 
   if(!user){
     return <Navigate to="/" replace />
+  }
+
+  if(allowedRoles && !allowedRoles.includes(user.role)){
+    return <Navigate to="/dashboard" replace />
   }
 
   return <Outlet/>

@@ -15,7 +15,8 @@ import {
   Inbox,
   Briefcase,
   ClipboardList,
-  Send
+  Send,
+  Workflow
 } from "lucide-react";
 import { logout } from "@/api/auth.api";
 import { toast } from "sonner";
@@ -25,13 +26,54 @@ import { ERROR_TOAST } from "@/constants/toast";
 // Navigation items for the sidebar
 
 const navItems = [
-  { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
-  { label: "Invite Employee", icon: UserPlus, path: "/invite" },
-  { label: "All Employees", icon: Users, path: "/all-employees" },
-  { label: "Submit leads", icon: FilePlus , path: "/submit-leads" },
-  { label: "All Leads", icon: ClipboardList , path: "/all-leads" },
-  { label: "My Leads", icon: Inbox, path: "/my-leads" },
-  { label: "Assign Leads", icon: Send, path: "/assign-leads" }
+  {
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    path: "/dashboard",
+    roles: ["Super_Admin", "Admin", "Email_Executive", "BDE_Executive"]
+  },
+  {
+    label: "Invite Employee",
+    icon: UserPlus,
+    path: "/invite",
+    roles: ["Super_Admin", "Admin"]
+  },
+  {
+    label: "All Employees",
+    icon: Users,
+    path: "/all-employees",
+    roles: ["Super_Admin", "Admin"]
+  },
+  {
+    label: "Submit Leads",
+    icon: FilePlus,
+    path: "/submit-leads",
+    roles: ["Email_Executive"]
+  },
+  {
+    label: "All Leads",
+    icon: ClipboardList,
+    path: "/all-leads",
+    roles: ["Admin", "Super_Admin", "Email_Executive", "BDE_Executive"]
+  },
+  {
+    label: "My Leads",
+    icon: Inbox,
+    path: "/my-leads",
+    roles: ["Email_Executive"]
+  },
+  {
+    label: "Assign Leads",
+    icon: Send,
+    path: "/assign-leads",
+    roles: ["Admin", "Super_Admin"]
+  },
+  {
+    label: "My Pipeline",
+    icon: Workflow,
+    path: "/my-pipeline",
+    roles: ["BDE_Executive"]
+  }
 ];
 
 interface DashboardLayoutProps {
@@ -115,7 +157,9 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
         {/* Navigation links. Highlights active route */}
 
         <nav className="flex-1 py-4 px-3 space-y-1">
-          {navItems.map((item) => {
+          {navItems
+            .filter((item) => item.roles.includes(user?.role))
+            .map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <Link

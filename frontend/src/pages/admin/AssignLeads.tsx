@@ -22,19 +22,27 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { Lead } from "@/types/lead";
-import { fetchNewLeadsAPI } from "@/api/lead.api";
+import { assignLeadsAPI, fetchNewLeadsAPI } from "@/api/lead.api";
 import FullPageLoader from "@/components/FullPageLoader";
-import { fetchLeadCreatorsAPI } from "@/api/user.api";
+import { fetchUsersForFilterAPI } from "@/api/user.api";
 import { toast } from "sonner";
-import { ERROR_TOAST } from "@/constants/toast";
+import { ERROR_TOAST, SUCCESS_TOAST } from "@/constants/toast";
 
 const PAGE_SIZES = [10, 25, 50];
 
 const AssignLeads = () => {
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [selected, setSelected] = useState<string[]>([]);
+
   const [employeeFilter, setEmployeeFilter] = useState("");
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
+
+  // Applied filters (used only when Filter button is clicked)
+
+  const [appliedEmployeeFilter, setAppliedEmployeeFilter] = useState("");
+  const [appliedDateFrom, setAppliedDateFrom] = useState<Date | undefined>();
+  const [appliedDateTo, setAppliedDateTo] = useState<Date | undefined>();
+
   const [assignTo, setAssignTo] = useState("");
   const [showConfirm, setShowConfirm] = useState(false);
   const [page, setPage] = useState(1);
@@ -44,131 +52,180 @@ const AssignLeads = () => {
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
 
-  const [employees, setEmployees] = useState<
-    { id: string ; name: string}[]
-  >([]) ; 
-  
-  // Options array 
+  const [submittedByUsers, setSubmittedByUsers] = useState([]);
+  const [assignToUsers, setAssignToUsers] = useState([]);
 
-  const employeeOptions = useMemo(
-    () => employees.map((e) => e.name), 
-    [employees]
-  )
+  // Options array
 
-  // fetch new leads 
+  const submittedByOptions = useMemo(
+    () =>
+      submittedByUsers.map((e) => ({
+        label: e.name,
+        value: e.id,
+      })),
+    [submittedByUsers],
+  );
+
+  const assignToOptions = useMemo(
+    () =>
+      assignToUsers.map((e) => ({
+        label: e.name,
+        value: e.id,
+      })),
+    [assignToUsers],
+  );
+
+  // fetch new leads
 
   useEffect(() => {
     const fetchLeads = async () => {
-    try {
-      setLoading(true);
-
-      const response = await fetchNewLeadsAPI({
-        page,
-        limit: pageSize,
-      });
-
-      const data = response.data;
-
-      if (data.success) {
-        setLeads(data.leads);
-        setTotal(data.total);
-      }
-    } catch (error) {
-      console.error("Failed to fetch new leads", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchLeads();
-  }, [page, pageSize])
-
-  // searchable select (lead creators)
-
-  useEffect(() => {
-    const fetchEmployees = async () => {
       try {
-        const res = await fetchLeadCreatorsAPI() ; 
+        setLoading(true);
 
-        if(res.data.success){
-          setEmployees(
-            res.data.users.map((u: any) => ({
-              id: u._id, 
-              name: u.name, 
-            }))
-          ) ; 
+        const response = await fetchNewLeadsAPI({
+          page,
+          limit: pageSize,
+          createdBy: appliedEmployeeFilter || undefined,
+          dateFrom: appliedDateFrom,
+          dateTo: appliedDateTo,
+        });
+
+        const data = response.data;
+
+        if (data.success) {
+          setLeads(data.leads);
+          setTotal(data.total);
         }
       } catch (error) {
-        console.error("Failed to fetch employees: ", error) ; 
-        toast.error("Searchable select won't work", ERROR_TOAST) ; 
+        console.error("Failed to fetch new leads", error);
+      } finally {
+        setLoading(false);
       }
-    }
-    fetchEmployees() ; 
-  }, [])
+    };
 
-  // filter 
+    fetchLeads();
+  }, [page, pageSize, appliedEmployeeFilter, appliedDateFrom, appliedDateTo]);
 
-  const filtered = leads ; 
+  // searchable select (users)
 
-  // Pagination
+  useEffect(() => {
+    const fetchDropdownUsers = async () => {
+      try {
+        const [submittedRes, assignRes] = await Promise.all([
+          fetchUsersForFilterAPI("submittedBy"),
+          fetchUsersForFilterAPI("assignTo"),
+        ]);
 
-  const paginated = filtered ; 
+        if (submittedRes.data.success) {
+          setSubmittedByUsers(
+            submittedRes.data.users.map((u: any) => ({
+              id: u._id, 
+              name: u.name,
+            })),
+          );
+        }
+
+        if (assignRes.data.success) {
+          setAssignToUsers(
+            assignRes.data.users.map((u: any) => ({
+              id: u._id, 
+              name: u.name,
+            })),
+          );
+        }
+      } catch (error) {
+        console.error("Failed to fetch dropdown users:", error);
+        toast.error("Searchable select won't work", ERROR_TOAST);
+      }
+    };
+    fetchDropdownUsers();
+  }, []);
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const safePage = Math.min(page, totalPages);
 
   const allVisibleSelected =
-    paginated.length > 0 && paginated.every((l) => selected.has(l.id));
+    leads.length > 0 && selected.length === leads.length;
 
-  const toggleAll = () => {
-    if (allVisibleSelected) {
-      const next = new Set(selected);
-      paginated.forEach((l) => next.delete(l.id));
-      setSelected(next);
+  const someVisibleSelected =
+    selected.length > 0 && selected.length < leads.length;
+
+  const isIndeterminate = someVisibleSelected;
+
+  const toggleAll = (checked: boolean | "indeterminate") => {
+    if (checked) {
+      setSelected(leads.map((l) => l.id));
     } else {
-      const next = new Set(selected);
-      paginated.forEach((l) => next.add(l.id));
-      setSelected(next);
+      setSelected([]);
     }
   };
 
-  const toggleOne = (id: string) => {
-    const next = new Set(selected) ; 
-
-    if(next.has(id)){
-      next.delete(id) ; 
-    } else {
-      next.add(id) ; 
-    }
-    setSelected(next) ; 
-  };
-
-  const selectedCount = selected.size;
+  const selectedCount = selected.length;
 
   const resetFilters = () => {
+    // UI state
+
     setEmployeeFilter("");
     setDateFrom(undefined);
     setDateTo(undefined);
+
+    // Applied state
+
+    setAppliedEmployeeFilter("");
+    setAppliedDateFrom(undefined);
+    setAppliedDateTo(undefined);
+
     setPage(1);
   };
 
-  const hasActiveFilters = employeeFilter || dateFrom || dateTo;
+  const handleAssign = async () => {
+    console.log("Selected:", selected);
+    console.log("AssignTo:", assignTo);
 
-  const handleAssign = () => {
+    try {
+      const leadIds = Array.from(selected);
 
+      console.log("LeadIds being sent:", leadIds);
+
+      const response = await assignLeadsAPI({
+        leadIds,
+        assignedTo: assignTo,
+      });
+
+      console.log("API Response:", response);
+
+      if (response.data.success) {
+        toast.success("Leads assigned successfully", SUCCESS_TOAST);
+
+        // Reset UI
+        setSelected([]);
+        setAssignTo("");
+        setShowConfirm(false);
+
+        // Refetch leads
+        setPage(1);
+      }
+    } catch (error) {
+      console.error("Assignment failed:", error);
+      toast.error("Failed to assign leads", ERROR_TOAST);
+    }
+  };
+
+  const hasActiveFilters =
+    appliedEmployeeFilter || appliedDateFrom || appliedDateTo;
+
+  if (loading) {
+    return <FullPageLoader />;
   }
 
-  if(loading){
-    return <FullPageLoader/>
-  }
+  console.log("Selected Employee (assignTo):", assignTo);
+  console.log("Selected Leads Count:", selected.length);
 
   return (
     <DashboardLayout title="Assign Leads">
       <div className="min-h-screen bg-background">
         <div className="px-6 py-1 w-full">
-
           {/* Header */}
-          
+
           <div className="mb-6">
             <div className="flex items-center gap-3 mb-1">
               <h1 className="text-2xl font-semibold tracking-tight text-foreground"></h1>
@@ -179,12 +236,9 @@ const AssignLeads = () => {
 
           <div className="mb-4 flex flex-wrap items-end gap-3">
             <SearchableSelect
-              options={employeeOptions}
+              options={submittedByOptions}
               value={employeeFilter}
-              onChange={(v) => {
-                setEmployeeFilter(v) ; 
-                setPage(1) 
-              }}
+              onChange={setEmployeeFilter}
               placeholder="Select employee"
               label="Submitted By"
               className="w-56"
@@ -215,7 +269,6 @@ const AssignLeads = () => {
                     selected={dateFrom}
                     onSelect={(d) => {
                       setDateFrom(d);
-                      setPage(1);
                     }}
                     className="p-3 pointer-events-auto"
                   />
@@ -224,7 +277,7 @@ const AssignLeads = () => {
             </div>
 
             {/* Date To */}
-            
+
             <div>
               <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
                 To
@@ -248,13 +301,26 @@ const AssignLeads = () => {
                     selected={dateTo}
                     onSelect={(d) => {
                       setDateTo(d);
-                      setPage(1);
                     }}
                     className="p-3 pointer-events-auto"
                   />
                 </PopoverContent>
               </Popover>
             </div>
+
+            <Button
+              size="sm"
+              className="h-9"
+              disabled={!employeeFilter && !dateFrom && !dateTo}
+              onClick={() => {
+                setAppliedEmployeeFilter(employeeFilter);
+                setAppliedDateFrom(dateFrom);
+                setAppliedDateTo(dateTo);
+                setPage(1);
+              }}
+            >
+              Filter
+            </Button>
 
             {hasActiveFilters && (
               <Button
@@ -270,6 +336,7 @@ const AssignLeads = () => {
           </div>
 
           {/* Action Bar */}
+
           <div className="mb-3 flex items-center justify-between">
             <div className="text-sm text-muted-foreground">
               {selectedCount > 0 ? (
@@ -277,17 +344,19 @@ const AssignLeads = () => {
                   {selectedCount} lead{selectedCount !== 1 ? "s" : ""} selected
                 </span>
               ) : (
-                <span>{filtered.length} leads</span>
+                <span>{total} new leads</span>
               )}
             </div>
 
             {selectedCount > 0 && (
               <div className="flex items-center gap-2">
-
                 <SearchableSelect
-                  options={employeeOptions}
+                  options={assignToOptions}
                   value={assignTo}
-                  onChange={setAssignTo}
+                  onChange={(val) => {
+                    console.log("assignTo changed: ", val);
+                    setAssignTo(val);
+                  }}
                   placeholder="Assign to employee"
                   className="w-56"
                 />
@@ -310,7 +379,13 @@ const AssignLeads = () => {
                   <tr className="border-b border-border bg-muted/50 sticky top-0">
                     <th className="w-12 px-4 py-3">
                       <Checkbox
-                        checked={allVisibleSelected}
+                        checked={
+                          allVisibleSelected
+                            ? true
+                            : someVisibleSelected
+                              ? "indeterminate"
+                              : false
+                        }
                         onCheckedChange={toggleAll}
                       />
                     </th>
@@ -335,8 +410,8 @@ const AssignLeads = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {paginated.length === 0 ? (
-                    <tr>
+                  {leads.length === 0 ? (
+                    <tr key="empty">
                       <td
                         colSpan={7}
                         className="px-4 py-12 text-center text-muted-foreground"
@@ -345,49 +420,64 @@ const AssignLeads = () => {
                       </td>
                     </tr>
                   ) : (
-                    paginated.map((lead) => (
-                      <tr
-                        key={lead.id}
-                        className={cn(
-                          "border-b border-border last:border-0 transition-colors",
-                          selected.has(lead.id)
-                            ? "bg-primary/[0.04]"
-                            : "hover:bg-muted/30",
-                        )}
-                      >
-                        <td className="px-4 py-3">
-                          <Checkbox
-                            checked={selected.has(lead.id)}
-                            onCheckedChange={() => toggleOne(lead.id)}
-                          />
-                        </td>
-                        <td className="px-4 py-3 font-medium text-foreground">
-                          {lead.name}
-                        </td>
-                        <td className="px-4 py-3 text-muted-foreground">
-                          {lead.email}
-                        </td>
-                        <td className="px-4 py-3">
-                          <a
-                            href={lead.website}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary hover:underline"
-                          >
-                            {lead.website.replace("https://", "")}
-                          </a>
-                        </td>
-                        <td className="px-4 py-3 text-muted-foreground">
-                          {lead.submittedBy}
-                        </td>
-                        <td className="px-4 py-3 text-muted-foreground">
-                          {format(new Date(lead.submittedDate), "MMM d, yyyy")}
-                        </td>
-                        <td className="px-4 py-3">
-                          <StatusBadge status={lead.status} />
-                        </td>
-                      </tr>
-                    ))
+                    leads.map((lead) => {
+                      console.log("ROW", lead.id, selected.includes(lead.id));
+                      console.log("leads: ", leads);
+                      return (
+                        <tr
+                          key={lead.id}
+                          className={cn(
+                            "border-b border-border last:border-0 transition-colors",
+                            selected.includes(lead.id)
+                              ? "bg-primary/[0.04]"
+                              : "hover:bg-muted/30",
+                          )}
+                        >
+                          <td className="px-4 py-3">
+                            <Checkbox
+                              checked={selected.includes(lead.id)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSelected((prev) => [...prev, lead.id]);
+                                } else {
+                                  setSelected((prev) =>
+                                    prev.filter((id) => id !== lead.id),
+                                  );
+                                }
+                              }}
+                            />
+                          </td>
+                          <td className="px-4 py-3 font-medium text-foreground">
+                            {lead.name}
+                          </td>
+                          <td className="px-4 py-3 text-muted-foreground">
+                            {lead.email}
+                          </td>
+                          <td className="px-4 py-3">
+                            <a
+                              href={lead.website}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary hover:underline"
+                            >
+                              {lead.website.replace("https://", "")}
+                            </a>
+                          </td>
+                          <td className="px-4 py-3 text-muted-foreground">
+                            {lead.submittedBy}
+                          </td>
+                          <td className="px-4 py-3 text-muted-foreground">
+                            {format(
+                              new Date(lead.submittedDate),
+                              "MMM d, yyyy",
+                            )}
+                          </td>
+                          <td className="px-4 py-3">
+                            <StatusBadge status={lead.status} />
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
@@ -416,12 +506,12 @@ const AssignLeads = () => {
 
             <div className="flex items-center gap-1">
               <span className="mr-3 text-sm text-muted-foreground">
-                Page {safePage} of {totalPages}
+                Page {page} of {totalPages}
               </span>
               <Button
                 variant="outline"
                 size="sm"
-                disabled={safePage <= 1}
+                disabled={page <= 1}
                 onClick={() => setPage((p) => p - 1)}
                 className="h-8 w-8 p-0"
               >
@@ -430,7 +520,7 @@ const AssignLeads = () => {
               <Button
                 variant="outline"
                 size="sm"
-                disabled={safePage >= totalPages}
+                disabled={page >= totalPages}
                 onClick={() => setPage((p) => p + 1)}
                 className="h-8 w-8 p-0"
               >
@@ -441,6 +531,7 @@ const AssignLeads = () => {
         </div>
 
         {/* Confirmation Modal */}
+
         <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
@@ -451,7 +542,10 @@ const AssignLeads = () => {
                   {selectedCount} lead{selectedCount !== 1 ? "s" : ""}
                 </span>{" "}
                 to{" "}
-                <span className="font-medium text-foreground">{assignTo}</span>.
+                <span className="font-medium text-foreground">
+                  {assignToOptions.find((o) => o.value === assignTo)?.label}
+                </span>
+                .
                 <br />
                 Do you want to continue?
               </DialogDescription>

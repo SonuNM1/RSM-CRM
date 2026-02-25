@@ -105,10 +105,9 @@ const InviteEmployee = () => {
                   ${errors.role ? "border-destructive" : "border-input"}`}
               >
                 <option value="">Select role</option>
-                <option>Admin</option>
-                <option>Email Executive</option>
-                <option>BDE</option>
-                <option>Viewer</option>
+                <option value="Admin">Admin</option>
+                <option value="Email_Executive">Email Executive</option>
+                <option value="BDE_Executive">BDE</option>
               </select>
               {errors.role && (
                 <p className="text-xs text-destructive">{errors.role}</p>
@@ -128,11 +127,11 @@ const InviteEmployee = () => {
                   ${errors.department ? "border-destructive" : "border-input"}`}
               >
                 <option value="">Select department</option>
-                <option>Email Team</option>
-                <option>BDE Team</option>
-                <option>Engineering</option>
-                <option>Support</option>
-                <option>Operations</option>
+                <option value="Email_Team">Email Team</option>
+                <option value="BDE_Team">BDE Team</option>
+                <option value="Engineering">Engineering</option>
+                <option value="Support">Support</option>
+                <option value="Operations">Operations</option>
               </select>
               {errors.department && (
                 <p className="text-xs text-destructive">{errors.department}</p>

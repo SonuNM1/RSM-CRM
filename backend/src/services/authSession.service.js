@@ -3,7 +3,6 @@ import { generateToken, generateRefreshToken } from "../utils/generateToken.js";
 // Create access & refresh tokens, manages refresh token storage
 
 export const createAuthSession = async ({ user, rememberMe }) => {
-  // decide expiry durations
 
   const accessTokenExpiry = "15m";
   const refreshTokenExpiry = rememberMe ? "30d" : "7d";

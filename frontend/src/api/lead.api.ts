@@ -44,3 +44,20 @@ export const fetchNewLeadsAPI = (params?: {
     params,
   });
 };
+
+// lead assign to BDE 
+
+export const assignLeadsAPI = (data: {
+  leadIds: string[];
+  assignedTo: string;
+}) => {
+  return api.patch("/api/leads/assign", data);
+};
+
+// Get leads assigned to me 
+
+export const getMyPipelineLeadsAPI = (params: any) => {
+  return api.get("/api/leads/my-pipeline", { params })
+} 
+
+// 

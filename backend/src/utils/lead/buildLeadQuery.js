@@ -24,8 +24,8 @@ export const buildLeadQuery = (queryParams) => {
   }
 
   const dateRange = parseDateRange(
-    startDate || fromDate,
-    endDate || toDate
+    startDate || fromDate || queryParams.dateFrom,
+    endDate || toDate || queryParams.dateTo
   );
 
   if (dateRange) {

@@ -1,9 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { Search, ChevronDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-
 interface SearchableSelectProps {
-  options: string[];
+  options: { label: string; value: string }[];
   value: string;
   onChange: (value: string) => void;
   placeholder: string;
@@ -25,14 +24,15 @@ const SearchableSelect = ({
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node))
+        setOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
   const filtered = options.filter((o) =>
-    o.toLowerCase().includes(search.toLowerCase())
+    o.label.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
@@ -49,10 +49,12 @@ const SearchableSelect = ({
           "flex h-9 w-full items-center justify-between rounded-md border border-input bg-card px-3 text-sm",
           "hover:border-ring/50 transition-colors",
           "focus:outline-none focus:ring-2 focus:ring-ring/20",
-          !value && "text-muted-foreground"
+          !value && "text-muted-foreground",
         )}
       >
-        <span className="truncate">{value || placeholder}</span>
+        <span className="truncate">
+          {options.find((o) => o.value === value)?.label || placeholder}
+        </span>
         <div className="flex items-center gap-1">
           {value && (
             <span
@@ -85,24 +87,26 @@ const SearchableSelect = ({
           </div>
           <div className="max-h-48 overflow-y-auto p-1">
             {filtered.length === 0 ? (
-              <p className="px-3 py-2 text-sm text-muted-foreground">No results</p>
+              <p className="px-3 py-2 text-sm text-muted-foreground">
+                No results
+              </p>
             ) : (
               filtered.map((option) => (
                 <button
-                  key={option}
+                  key={option.value}
                   type="button"
                   onClick={() => {
-                    onChange(option);
+                    onChange(option.value);
                     setOpen(false);
                     setSearch("");
                   }}
                   className={cn(
                     "flex w-full items-center rounded-sm px-3 py-1.5 text-sm",
                     "hover:bg-accent transition-colors",
-                    value === option && "bg-accent font-medium"
+                    value === option.value && "bg-accent font-medium",
                   )}
                 >
-                  {option}
+                  {option.label}
                 </button>
               ))
             )}

@@ -22,8 +22,7 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
 
         if(error?.response?.status === 401){
-            setLoading(true) ; 
-            return ; 
+          setUser(null) ; 
         }
 
       } finally {

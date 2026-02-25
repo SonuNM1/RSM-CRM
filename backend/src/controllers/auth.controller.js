@@ -7,76 +7,75 @@ import { createAuthSession } from "../services/authSession.service.js";
 import sendEmail from "../utils/email.js";
 import { inviteUserTemplate } from "../utils/emailTemplates/inviteUser.template.js";
 import { generateRefreshToken, generateToken } from "../utils/generateToken.js";
+import jwt from "jsonwebtoken" ; 
 
 export const refreshAccessToken = async (req, res) => {
   try {
-
-    if(!req.cookies?.refreshToken){
+    if (!req.cookies?.refreshToken) {
       return res.status(401).json({
-        message: "No refresh token"
-      })
+        message: "No refresh token",
+      });
     }
 
-    const refreshToken = req.cookies?.refreshToken ; 
+    const refreshToken = req.cookies?.refreshToken;
 
-    if(!refreshToken){
+    if (!refreshToken) {
       return res.status(401).json({
-        message: "No refresh token"
-      })
+        message: "No refresh token",
+      });
     }
 
-    // verify refresh token signature 
+    // verify refresh token signature
 
-    const payload = jwt.verify(
-      refreshToken, 
-      process.env.JWT_REFRESH_TOKEN
-    ) ; 
+    const payload = jwt.verify(refreshToken, process.env.JWT_REFRESH_TOKEN);
 
-    // Find user 
+    // Find user
 
-    const user = await User.findById(payload.userId) ; 
+    const user = await User.findById(payload.userId);
 
-    if(!user){
+    if (!user) {
       return res.status(401).json({
-        message: "User not found"
-      })
+        message: "User not found",
+      });
     }
 
-    // Validate refresh token against DB 
+    // Validate refresh token against DB
 
     const storedToken = user.refreshTokens.find(
-      (rt) => rt.token === refreshToken && rt.expiresAt > new Date()
-    )
+      (rt) => rt.token === refreshToken && rt.expiresAt > new Date(),
+    );
 
-    if(!storedToken){
+    if (!storedToken) {
       return res.status(401).json({
-        message: "Invalid refresh token"
-      })
+        message: "Invalid refresh token",
+      });
     }
 
-    // Issue new access token 
+    // Issue new access token
 
-    const newAccessToken = generateToken(user._id, "15m") ; 
+    const newAccessToken = generateToken(user._id, "15m");
 
     res.cookie("accessToken", newAccessToken, {
-      httpOnly: true, 
+      httpOnly: true,
       secure: false, // true only in production HTTPS
-      sameSite: "lax", 
+      sameSite: "lax",
       maxAge: 15 * 60 * 1000,
-    })
+    });
 
     return res.status(200).json({
       message: "Access token refreshed",
     });
   } catch (error) {
-    console.log("Refresh access token error: ", error) ; 
+    console.log("Refresh access token error: ", error);
     return res.status(401).json({ message: "Refresh failed" });
   }
-}
+};
 
 export const inviteUser = async (req, res) => {
   try {
     const { email, department, role } = req.body;
+
+    const inviteExpiryHours = Number(process.env.INVITE_EXPIRY_HOURS) || 24;
 
     // validating input
 
@@ -133,8 +132,6 @@ export const inviteUser = async (req, res) => {
 
     const inviteToken = crypto.randomBytes(32).toString("hex"); // used as invite link token. One-time use and expires. Cryptographically secure. Generates 32 bytes of secure random data. toString("hex") converts it to readable string
 
-    const inviteExpiryHours = Number(process.env.INVITE_EXPIRY_HOURS) || 24;
-
     const user = await User.create({
       email,
       role,
@@ -167,6 +164,13 @@ export const inviteUser = async (req, res) => {
     });
   } catch (error) {
     console.error(chalk.bold.red("Invite user error: ", error));
+
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        message: error.message,
+      });
+    }
+
     return res.status(500).json({
       message: "Internal Server Error",
     });
@@ -386,13 +390,13 @@ export const logout = async (req, res) => {
 
 export const getMe = async (req, res) => {
   try {
-    res.set("Cache-Control", "no-store") ;
+    res.set("Cache-Control", "no-store");
 
     const user = await User.findById(req.user._id).select(
-      "_id name email role department status createdAt"
-    )
+      "_id name email role department status createdAt",
+    );
 
-    res.status(200).json({user});
+    res.status(200).json({ user });
   } catch (error) {
     console.error("Get me error: ", error);
     res.status(401).json({
