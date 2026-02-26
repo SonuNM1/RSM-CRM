@@ -7,6 +7,8 @@ export interface ApiLead {
   comments?: string;
   createdAt: string;
   status?: string;
+  assignedBy?: string;
+  assignedAt?: string;
   createdBy?: {
     _id: string;
     name: string;

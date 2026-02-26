@@ -112,7 +112,7 @@ export function LeadsFilters({
         <SelectTrigger className="w-40">
           <SelectValue placeholder="Status" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent>http://localhost:8080/invite
           <SelectItem value="All">All Statuses</SelectItem>
           {statuses.map((s) => (
             <SelectItem key={s} value={s}>

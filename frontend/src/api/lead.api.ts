@@ -57,7 +57,10 @@ export const assignLeadsAPI = (data: {
 // Get leads assigned to me 
 
 export const getMyPipelineLeadsAPI = (params: any) => {
+  console.log("API called with params:", params);
   return api.get("/api/leads/my-pipeline", { params })
 } 
 
-// 
+export const updateLeadStatusAPI = (leadId: string, status: string) => {
+  return api.patch(`/api/leads/${leadId}/status`, { status });
+};

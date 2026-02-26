@@ -1,4 +1,4 @@
-export const LEAD_STATUS_COLORS = {
+export const LEAD_STATUS_COLORS: Record<string, string> = {
   "New":             "bg-blue-100 text-blue-700",
   "Assigned":        "bg-indigo-100 text-indigo-700",
   "RNR":             "bg-yellow-100 text-yellow-700",
@@ -16,8 +16,10 @@ export const LEAD_STATUS_COLORS = {
   "Trash":           "bg-slate-100 text-slate-500",
 };
 
+// BDE cannot set these — only Admin/Super_Admin
 export const ADMIN_ONLY_STATUSES = ["Qualified", "Converted", "Lost", "Trash"];
 
+// All statuses BDE can set
 export const BDE_STATUSES = [
   "RNR", "Answered", "Number NA", "Out of Service",
   "Can't Connect", "DNS", "Follow Up", "Interested", "Not Interested"

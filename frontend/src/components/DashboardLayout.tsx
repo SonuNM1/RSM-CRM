@@ -16,7 +16,8 @@ import {
   Briefcase,
   ClipboardList,
   Send,
-  Workflow
+  Workflow,
+  Presentation
 } from "lucide-react";
 import { logout } from "@/api/auth.api";
 import { toast } from "sonner";
@@ -73,6 +74,12 @@ const navItems = [
     icon: Workflow,
     path: "/my-pipeline",
     roles: ["BDE_Executive"]
+  },
+  {
+    label: "Meetings",
+    icon: Presentation,
+    path: "/meetings",
+    roles: ["BDE_Executive", "Admin", "Super_Admin"]
   }
 ];
 

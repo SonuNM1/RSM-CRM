@@ -55,6 +55,8 @@ const AssignLeads = () => {
   const [submittedByUsers, setSubmittedByUsers] = useState([]);
   const [assignToUsers, setAssignToUsers] = useState([]);
 
+  const [refreshKey, setRefreshKey] = useState(0) ; 
+
   // Options array
 
   const submittedByOptions = useMemo(
@@ -104,7 +106,7 @@ const AssignLeads = () => {
     };
 
     fetchLeads();
-  }, [page, pageSize, appliedEmployeeFilter, appliedDateFrom, appliedDateTo]);
+  }, [page, pageSize, appliedEmployeeFilter, appliedDateFrom, appliedDateTo, refreshKey]);
 
   // searchable select (users)
 
@@ -203,6 +205,7 @@ const AssignLeads = () => {
 
         // Refetch leads
         setPage(1);
+        setRefreshKey((k) => k + 1) ; 
       }
     } catch (error) {
       console.error("Assignment failed:", error);

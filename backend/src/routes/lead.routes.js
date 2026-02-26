@@ -1,7 +1,14 @@
 import express from "express" 
 import { protect } from "../middleware/auth.middleware.js";
 import { allowRoles } from "../middleware/role.middleware.js";
-import { getLeads, submitLeads, getLeadStatuses, getNewLeads, assignLeads, getMyPipelineLeads } from "../controllers/lead.controller.js";
+import { getLeads, 
+    submitLeads, 
+    getLeadStatuses, 
+    getNewLeads, 
+    assignLeads, 
+    getMyPipelineLeads, 
+    updateLeadStatus 
+} from "../controllers/lead.controller.js";
 
 const router = express.Router() ; 
 
@@ -28,5 +35,9 @@ router.patch("/assign", protect, allowRoles("Super_Admin", "Admin"), assignLeads
 // leads assigned to me (get)
 
 router.get("/my-pipeline", protect, allowRoles("BDE_Executive", "Admin", "Super_Admin"), getMyPipelineLeads) ; 
+
+// update lead status 
+
+router.patch("/:id/status", protect, allowRoles("BDE_Executive", "Admin", "Super_Admin"), updateLeadStatus) ; 
 
 export default router ; 

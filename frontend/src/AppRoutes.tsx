@@ -19,6 +19,7 @@ import MyPipeline from "./pages/bde/MyPipeline";
 import MyLeads from "./pages/emailTeam/MyLeads";
 import BdeDashboard from "./pages/Dashboard/BdeDashboard";
 import SuperAdminDashboard from "./pages/Dashboard/SuperAdminDashboard";
+import Meetings from "./pages/Meetings";
 
 const AppRoutes = () => {
   return (
@@ -68,6 +69,7 @@ const AppRoutes = () => {
           }
         >
           <Route path="/all-leads" element={<AllLeads />} />
+          <Route path="/meetings" element={<Meetings />} />
         </Route>
 
         <Route path="*" element={<NotFound />} />

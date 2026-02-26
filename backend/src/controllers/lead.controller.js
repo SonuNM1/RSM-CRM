@@ -5,7 +5,8 @@ import path from "path";
 import { normalizeWebsite } from "../utils/normalizeWebsite.js";
 import { buildLeadQuery } from "../utils/lead/buildLeadQuery.js";
 import { buildPagination } from "../utils/lead/buildPagination.js";
-import { LEAD_STATUSES } from "../constants/leadStatus.js";
+import { ADMIN_ONLY_STATUSES, ALL_STATUSES } from "../constants/leadStatus.js";
+import mongoose from "mongoose";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,7 +14,6 @@ const __dirname = path.dirname(__filename);
 // Load countries.json manually
 
 const countriesPath = path.join(__dirname, "../data/countries.json");
-const countries = JSON.parse(fs.readFileSync(countriesPath, "utf-8"));
 
 // Submit the leads
 
@@ -112,10 +112,17 @@ export const submitLeads = async (req, res) => {
 // lead statuses - used for filters and dropdowns
 
 export const getLeadStatuses = async (req, res) => {
-  return res.status(200).json({
+  try{
+    return res.status(200).json({
     success: true,
-    statuses: LEAD_STATUSES,
+    statuses: ALL_STATUSES,
   });
+  }catch(error){
+    return res.status(500).json({
+      success: false, 
+      message: "Internal Server Error"
+    })
+  }
 };
 
 // Fetch the leads - filter, pagination, search
@@ -181,6 +188,7 @@ export const getNewLeads = async (req, res) => {
     const query = {
       ...buildLeadQuery(req.query),
       status: "New",
+      assignedTo: null,
     };
 
     const { page, limit, skip } = buildPagination(
@@ -241,18 +249,18 @@ export const assignLeads = async (req, res) => {
     const result = await Lead.updateMany(
       {
         _id: { $in: leadIds },
-        assignedTo: { $exists: false }, // 👈 prevents reassignment
+        assignedTo: null,
       },
       {
         $set: {
           assignedTo,
           assignedAt: new Date(),
-          status: "ASSIGNED",
+          status: "Assigned",
         },
       },
     );
 
-     return res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: `${result.modifiedCount} leads assigned successfully`,
     });
@@ -268,27 +276,60 @@ export const assignLeads = async (req, res) => {
 // leads assigned to me (get)
 
 export const getMyPipelineLeads = async (req, res) => {
-  try{
+  try {
     const userId = req.user._id;
 
-    const query = buildLeadQuery(req.query) ;
+    const query = buildLeadQuery(req.query);
+    query.assignedTo = new mongoose.Types.ObjectId(userId);
 
-    query.assignedTo = userId ; 
-
-    const leads = await Lead.find(query)  
+    const leads = await Lead.find(query)
       .populate("createdBy", "name")
-      .sort({createdAt: -1})
-      .lean() ; 
+      .populate("assignedTo", "name")
+      .sort({ createdAt: -1 })
+      .lean();
 
-    res.status(200).json({
-      success: true, 
-      leads 
-    })
-
-  }catch(error){
-    res.status(500).json({
-      success: false, 
-      message: "Error fetching the assigned leads"
-    })
+    res.status(200).json({ success: true, leads });
+  } catch (error) {
+    console.error("getMyPipelineLeads error:", error); // 👈 check your terminal for this
+    res
+      .status(500)
+      .json({ success: false, message: "Error fetching the assigned leads" });
   }
-}
+};
+
+// update lead status
+
+export const updateLeadStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    const userRole = req.user.role;
+
+    console.log("updateLeadStatus hit:", req.params.id, status, userRole); 
+
+    if (ADMIN_ONLY_STATUSES.includes(status) && userRole === "BDE_Executive") {
+      return res.status(403).json({
+        success: false,
+        message: `Only admins can set status to "${status}"`,
+      });
+    }
+
+    const lead = await Lead.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true, runValidators: true },
+    );
+
+    console.log("Updated lead:", lead);
+
+    if (!lead) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Lead not found" });
+    }
+
+    return res.status(200).json({ success: true, lead });
+  } catch (error) {
+    console.error("Update lead status error: ", error);
+    return res.status(500).json({ success: false, message: "Failed to update status" });
+  }
+};
