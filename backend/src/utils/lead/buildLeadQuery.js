@@ -2,7 +2,7 @@ import { normalizeWebsite } from "../normalizeWebsite.js";
 import { parseDateRange } from "./parseDateRange.js";
 import mongoose from "mongoose";
 
-export const buildLeadQuery = (queryParams) => {
+export const buildLeadQuery = (queryParams, dateField = "createdAt") => {
 
   const { 
     search, 

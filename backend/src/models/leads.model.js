@@ -53,23 +53,26 @@ const leadSchema = new mongoose.Schema(
       ref: "User",
     },
     assignedAt: Date,
-    // activities: [
-    //     {
-    //         status: {
-    //             type: String,
-    //             enum: LEAD_STATUSES
-    //         },
-    //         note: String,
-    //         updatedBy: {
-    //             type: mongoose.Schema.Types.ObjectId,
-    //             ref: "User"
-    //         },
-    //         createdAt: {
-    //             type: Date,
-    //             default: Date.now
-    //         }
-    //     }
-    // ]
+    activities: [
+        {
+            type: {
+              type: String, 
+              enum: ["status_change", "note", "call", "email"], 
+              default: "note"
+            },
+            oldStatus: String, 
+            newStatus: String,
+            content: String, 
+            updatedBy: {
+              type: mongoose.Schema.Types.ObjectId, 
+              ref: "User"
+            },
+            timestamp: {
+              type: Date,
+              default: Date.now 
+            }
+        }
+    ]
   },
   { timestamps: true },
 );

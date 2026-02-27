@@ -55,7 +55,7 @@ const navItems = [
     label: "All Leads",
     icon: ClipboardList,
     path: "/all-leads",
-    roles: ["Admin", "Super_Admin", "Email_Executive", "BDE_Executive"]
+    roles: ["Admin", "Super_Admin"]
   },
   {
     label: "My Leads",

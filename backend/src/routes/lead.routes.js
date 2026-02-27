@@ -7,7 +7,10 @@ import { getLeads,
     getNewLeads, 
     assignLeads, 
     getMyPipelineLeads, 
-    updateLeadStatus 
+    updateLeadStatus, 
+    getLeadById,
+    addLeadActivity,
+    getLeadActivities
 } from "../controllers/lead.controller.js";
 
 const router = express.Router() ; 
@@ -39,5 +42,17 @@ router.get("/my-pipeline", protect, allowRoles("BDE_Executive", "Admin", "Super_
 // update lead status 
 
 router.patch("/:id/status", protect, allowRoles("BDE_Executive", "Admin", "Super_Admin"), updateLeadStatus) ; 
+
+// get lead by id (BdeTimeline)
+
+router.get("/:leadId", protect, allowRoles("BDE_Executive", "Admin", "Super_Admin"), getLeadById)
+
+// update lead (status and note)
+
+router.post("/:leadId/activity", protect, allowRoles("BDE_Executive", "Admin", "Super_Admin"), addLeadActivity)
+
+// get lead activity (status and note)
+
+router.get("/:leadId/activities", protect, allowRoles("BDE_Executive", "Admin", "Super_Admin"), getLeadActivities)
 
 export default router ; 

@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import type { Lead } from "@/types/lead";
-import { StatusBadge } from "@/components/leads/StatusBadge";
+import { StatusBadge } from "./StatusBadge";
 
 interface LeadsTableProps {
   leads: Lead[];

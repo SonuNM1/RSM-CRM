@@ -136,7 +136,7 @@ const SettingsPage = () => {
 
         {/* Notifications */}
 
-        <div className="bg-card rounded-xl card-shadow p-6">
+        {/* <div className="bg-card rounded-xl card-shadow p-6">
           <h2 className="text-base font-display font-bold text-foreground mb-4">Notifications</h2>
           <div className="space-y-3">
             {[
@@ -155,7 +155,7 @@ const SettingsPage = () => {
               </label>
             ))}
           </div>
-        </div>
+        </div> */}
       </div>
     </DashboardLayout>
   );

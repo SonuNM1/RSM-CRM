@@ -61,6 +61,26 @@ export const getMyPipelineLeadsAPI = (params: any) => {
   return api.get("/api/leads/my-pipeline", { params })
 } 
 
+// update lead status API (BDE)
+
 export const updateLeadStatusAPI = (leadId: string, status: string) => {
   return api.patch(`/api/leads/${leadId}/status`, { status });
 };
+
+// GET lead by id (BdeTimeline)
+
+export const getLeadByIdAPI = (leadId: string) => {
+  return api.get(`/api/leads/${leadId}`)
+}
+
+// Update lead status (with notes)
+
+export const updateLeadActivityAPI = (leadId: string, data: { status?: string; note?: string }) => {
+  return api.post(`/api/leads/${leadId}/activity`, data);
+};
+
+// Get lead activity (status and notes)
+
+export const getLeadActivitiesAPI = (leadId: string) => {
+  return api.get(`/api/leads/${leadId}/activities`) ; 
+}

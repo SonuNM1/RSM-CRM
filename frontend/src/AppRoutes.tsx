@@ -20,6 +20,7 @@ import MyLeads from "./pages/emailTeam/MyLeads";
 import BdeDashboard from "./pages/Dashboard/BdeDashboard";
 import SuperAdminDashboard from "./pages/Dashboard/SuperAdminDashboard";
 import Meetings from "./pages/Meetings";
+import BdeTimeline from "./pages/bde/BdeTimeline";
 
 const AppRoutes = () => {
   return (
@@ -52,6 +53,8 @@ const AppRoutes = () => {
 
         <Route element={<ProtectedRoute allowedRoles={["BDE_Executive"]} />}>
           <Route path="/my-pipeline" element={<MyPipeline />} />
+          <Route path="/meetings" element={<Meetings />} />
+          <Route path="/my-pipeline/:leadId" element={<BdeTimeline />} />
         </Route>
 
         {/* Email Executive */}
@@ -69,7 +72,7 @@ const AppRoutes = () => {
           }
         >
           <Route path="/all-leads" element={<AllLeads />} />
-          <Route path="/meetings" element={<Meetings />} />
+          
         </Route>
 
         <Route path="*" element={<NotFound />} />

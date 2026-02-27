@@ -9,7 +9,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Search, ChevronLeft, ChevronRight, Filter } from "lucide-react";
+import {
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  Filter,
+  RotateCcw,
+} from "lucide-react";
 import { Lead } from "@/types/lead";
 import { useDebounce } from "@/hooks/useDebounce";
 import { ERROR_TOAST, SUCCESS_TOAST } from "@/constants/toast";
@@ -21,17 +27,19 @@ import { format } from "date-fns";
 import { updateLeadStatusAPI } from "@/api/lead.api";
 import { BDE_STATUSES, ADMIN_ONLY_STATUSES } from "@/constants/leadStatus";
 import { useAuth } from "@/context/AuthContext";
-import { LEAD_STATUS_COLORS } from "@/constants/leadStatus";
+import { useNavigate } from "react-router-dom";
 import { StatusBadge } from "@/components/leads/StatusBadge";
 
 const ITEMS_PER_PAGE = 14;
 
 const MyPipeline = () => {
-  const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
 
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(false);
   const [statuses, setStatuses] = useState<string[]>([]);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [page, setPage] = useState(1);
 
   const [filters, setFilters] = useState({
     search: "",
@@ -40,10 +48,9 @@ const MyPipeline = () => {
   });
 
   const { user } = useAuth();
+  const navigate = useNavigate() ; 
 
   const debouncedSearch = useDebounce(filters.search, 500);
-
-  const [page, setPage] = useState(1);
 
   const totalPages = Math.max(1, Math.ceil(leads.length / ITEMS_PER_PAGE));
 
@@ -67,18 +74,16 @@ const MyPipeline = () => {
     }
 
     if (filters.dateRange?.from) {
-      params.fromDate = filters.dateRange.from.toISOString();
+      params.fromDate = filters.dateRange.from.toISOString().split("T")[0]; // 👈 "2026-02-24"
     }
 
     if (filters.dateRange?.to) {
-      params.toDate = filters.dateRange.to.toISOString();
+      params.toDate = filters.dateRange.to.toISOString().split("T")[0]; // 👈 "2026-02-26"
     }
 
     return params;
   };
-
   useEffect(() => {
-    console.log("useEffect fired");
 
     const fetchLeads = async () => {
       try {
@@ -142,11 +147,14 @@ const MyPipeline = () => {
   return (
     <DashboardLayout title="My Pipeline">
       <div className="p-1 sm:p-6 lg:p-8">
-        
+
         {/* Filters */}
 
-        <div className="flex flex-col lg:flex-row gap-3 mb-6">
-          <div className="relative flex-1 max-w-sm">
+        <div className="flex flex-wrap items-center gap-3 mb-6">
+        
+          {/* Search */}
+        
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               value={filters.search}
@@ -154,9 +162,12 @@ const MyPipeline = () => {
                 setFilters((f) => ({ ...f, search: e.target.value }))
               }
               placeholder="Search name, email, website…"
-              className="pl-9"
+              className="pl-9 w-56"
             />
           </div>
+
+          {/* Status */}
+
           <Select
             value={filters.status}
             onValueChange={(v) => {
@@ -164,7 +175,7 @@ const MyPipeline = () => {
               setPage(1);
             }}
           >
-            <SelectTrigger className="w-full lg:w-44">
+            <SelectTrigger className="w-40">
               <Filter className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
               <SelectValue placeholder="All Statuses" />
             </SelectTrigger>
@@ -177,38 +188,63 @@ const MyPipeline = () => {
               ))}
             </SelectContent>
           </Select>
-          <div className="flex gap-2 items-center">
-            <Input
-              type="date"
-              onChange={(e) =>
-                setFilters((f) => ({
-                  ...f,
-                  dateRange: {
-                    ...f.dateRange,
-                    from: e.target.value ? new Date(e.target.value) : undefined,
-                  },
-                }))
-              }
-              className="w-auto"
-            />
-            <span className="text-muted-foreground text-sm">to</span>
-            <Input
-              type="date"
-              onChange={(e) =>
-                setFilters((f) => ({
-                  ...f,
-                  dateRange: {
-                    ...f.dateRange,
-                    to: e.target.value ? new Date(e.target.value) : undefined,
-                  },
-                }))
-              }
-              className="w-auto"
-            />
-          </div>
+
+          {/* Dates */}
+          
+          <Input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            className="w-36"
+          />
+          <span className="text-muted-foreground text-sm">to</span>
+          <Input
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            className="w-36"
+          />
+
+          {/* Filter + Clear — only show when date is selected */}
+          {(dateFrom || dateTo) && (
+            <>
+              <Button
+                size="sm"
+                className="h-9 text-white"
+                style={{ backgroundColor: "#19B3A6" }}
+                onClick={() => {
+                  setFilters((f) => ({
+                    ...f,
+                    dateRange: {
+                      from: dateFrom ? new Date(dateFrom) : undefined,
+                      to: dateTo ? new Date(dateTo) : undefined,
+                    },
+                  }));
+                  setPage(1);
+                }}
+              >
+                Filter
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-9 text-muted-foreground hover:text-foreground"
+                onClick={() => {
+                  setDateFrom("");
+                  setDateTo("");
+                  setFilters((f) => ({ ...f, dateRange: undefined }));
+                  setPage(1);
+                }}
+              >
+                <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
+                Clear
+              </Button>
+            </>
+          )}
         </div>
 
         {/* Table */}
+
         <div className="rounded-lg border border-border bg-card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm table-fixed">
@@ -242,6 +278,7 @@ const MyPipeline = () => {
                   <tr
                     key={lead.id}
                     className="border-b border-border last:border-0 hover:bg-muted/30"
+                    onClick={() => navigate(`/my-pipeline/${lead.id}`)}
                   >
                     <td className="px-4 py-3 font-medium">{lead.name}</td>
                     <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">
@@ -311,7 +348,6 @@ const MyPipeline = () => {
             </table>
           </div>
         </div>
-
         {/* Pagination */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4">
           <p className="text-sm text-muted-foreground">

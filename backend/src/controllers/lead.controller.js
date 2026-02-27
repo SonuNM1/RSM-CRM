@@ -112,16 +112,16 @@ export const submitLeads = async (req, res) => {
 // lead statuses - used for filters and dropdowns
 
 export const getLeadStatuses = async (req, res) => {
-  try{
+  try {
     return res.status(200).json({
-    success: true,
-    statuses: ALL_STATUSES,
-  });
-  }catch(error){
+      success: true,
+      statuses: ALL_STATUSES,
+    });
+  } catch (error) {
     return res.status(500).json({
-      success: false, 
-      message: "Internal Server Error"
-    })
+      success: false,
+      message: "Internal Server Error",
+    });
   }
 };
 
@@ -279,7 +279,7 @@ export const getMyPipelineLeads = async (req, res) => {
   try {
     const userId = req.user._id;
 
-    const query = buildLeadQuery(req.query);
+    const query = buildLeadQuery(req.query, "assignedAt");
     query.assignedTo = new mongoose.Types.ObjectId(userId);
 
     const leads = await Lead.find(query)
@@ -304,7 +304,7 @@ export const updateLeadStatus = async (req, res) => {
     const { status } = req.body;
     const userRole = req.user.role;
 
-    console.log("updateLeadStatus hit:", req.params.id, status, userRole); 
+    console.log("updateLeadStatus hit:", req.params.id, status, userRole);
 
     if (ADMIN_ONLY_STATUSES.includes(status) && userRole === "BDE_Executive") {
       return res.status(403).json({
@@ -330,6 +330,142 @@ export const updateLeadStatus = async (req, res) => {
     return res.status(200).json({ success: true, lead });
   } catch (error) {
     console.error("Update lead status error: ", error);
-    return res.status(500).json({ success: false, message: "Failed to update status" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Failed to update status" });
+  }
+};
+
+// get leads by id (BdeTimeline)
+
+export const getLeadById = async (req, res) => {
+  try {
+    const { leadId } = req.params;
+
+    // validate leadId
+
+    if (!leadId) {
+      return res.status(400).json({
+        success: false,
+        message: "Lead ID is required",
+      });
+    }
+
+    // find lead and populate createdBy field
+
+    const lead = await Lead.findById(leadId)
+      .populate("createdBy", "name email")
+      .populate("assignedTo", "name email");
+
+    if (!lead) {
+      return res.status(404).json({
+        success: false,
+        message: "Lead not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      lead,
+    });
+  } catch (error) {
+    console.error("Error fetching lead by ID:", error);
+
+    // handle invalid ObjectId format
+
+    if (error.name === "CastError") {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid lead ID format",
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching lead",
+    });
+  }
+};
+
+// add lead activity status and note
+
+export const addLeadActivity = async (req, res) => {
+  try {
+    const { leadId } = req.params;
+    const { status, note } = req.body;
+    const userId = req.user.id; // From auth middleware
+
+    const lead = await Lead.findById(leadId);
+    if (!lead) {
+      return res.status(404).json({
+        success: false,
+        message: "Lead not found",
+      });
+    }
+
+    const activity = {
+      type: status ? "status_change" : "note",
+      content: note || `Status changed from ${lead.status} to ${status}`,
+      updatedBy: userId,
+      timestamp: new Date(),
+    };
+
+    if (status) {
+      activity.oldStatus = lead.status;
+      activity.newStatus = status;
+      lead.status = status;
+    }
+
+    lead.activities.push(activity);
+    await lead.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Activity added successfully",
+      lead,
+    });
+  } catch (error) {
+    console.error("Error adding activity:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while adding activity",
+    });
+  }
+};
+
+// get lead activity (status and note)
+
+export const getLeadActivities = async (req, res) => {
+  try {
+    const { leadId } = req.params;
+
+    const lead = await Lead.findById(leadId)
+      .populate("activities.updatedBy", "name email")
+      .select("activities");
+
+    if (!lead) {
+      return res.status(404).json({
+        success: false,
+        message: "Lead not found",
+      });
+    }
+
+    // Sort activities by timestamp (newest first)
+
+    const sortedActivities = lead.activities.sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+    );
+
+    res.status(200).json({
+      success: true,
+      activities: sortedActivities,
+    });
+  } catch (error) {
+    console.error("Error fetching activities:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching activities",
+    });
   }
 };
