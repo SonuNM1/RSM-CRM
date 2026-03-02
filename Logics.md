@@ -18,3 +18,5 @@ Admin-invited users > self-registration in CRM (otherwise any person with email 
 
 - Employees and Admin will be invited by the Super_Admin 
 
+## Think product-first, before code 
+

@@ -9,10 +9,19 @@ export interface Lead {
   name: string;
   email: string;
   phone: string;
+  createdAt: string; 
+  comments: string ; 
   website: string;
   submittedBy: string;
   submittedDate: string;
   status: LeadStatus;
   assignedBy?: string;
   assignedAt?: string;
+}
+export interface ConversationModalProps {
+  open: boolean;
+  onClose: () => void;
+  rowId: number | null;
+  initialValue: string;
+  onSave: (rowId: number, comments: string) => void;
 }

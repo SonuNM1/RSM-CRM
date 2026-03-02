@@ -5,10 +5,8 @@ import { submitLeadsAPI } from "@/api/lead.api";
 import SubmitResultModal from "@/modals/SubmitResultModal";
 import { toast } from "sonner";
 import { ERROR_TOAST } from "@/constants/toast";
-
-// Dynamic table-based form to submit multiple leads at once. Automatically adds a nw row when the last row is filled. Allows bulk submission.
-
-// Shape of single lead row. Each row represents one lead
+import { Expand } from "lucide-react";
+import ConversationModal from "@/modals/ConversationModal";
 
 interface LeadRow {
   id: number; // unique row identifier
@@ -48,6 +46,18 @@ const SubmitLeads = () => {
   const [rows, setRows] = useState<LeadRow[]>([createEmptyRow(1)]); // all lead rows shown in table
   const [nextId, setNextId] = useState(2); // used to generate unique row IDs
   const [submitting, setSubmitting] = useState(false); // disable button while API call runs
+
+  const [activeConversationRow, setActiveConversationRow] = useState<
+    number | null
+  >(null);
+
+  const openConversationModal = (id: number) => {
+    setActiveConversationRow(id);
+  };
+
+  const closeConversationModal = () => {
+    setActiveConversationRow(null);
+  };
 
   interface SubmitLeadResult {
     insertedCount: number;
@@ -110,43 +120,46 @@ const SubmitLeads = () => {
   // Submit handler - filters only filled rows, Resets table on success
 
   const handleSubmit = async () => {
-    
     const filledRows = rows.filter(
-      (r) => 
-        r.website.trim() && 
-        r.name.trim() && 
-        r.email.trim() && 
-        r.phone.trim() 
-    )
+      (r) =>
+        r.website.trim() && r.name.trim() && r.email.trim() && r.phone.trim(),
+    );
 
     if (filledRows.length === 0) return;
 
     setSubmitting(true);
 
     try {
-
       const payload = filledRows.map(({ id, ...rest }) => rest);
 
       console.log("Leads being submitted:", payload);
 
-      const res = await submitLeadsAPI({leads: payload});
+      const res = await submitLeadsAPI({ leads: payload });
 
       setResultData(res.data);
       setResultModalOpen(true);
 
-      // Reset only if something was actually saved. If all records duplicate, then not cleared 
+      // Reset only if something was actually saved. If all records duplicate, then not cleared
 
       if (res.data.insertedCount > 0) {
         setRows([createEmptyRow(nextId)]);
         setNextId((n) => n + 1);
       }
     } catch (error) {
-      console.error("Submit leads error: ", error) ; 
+      console.error("Submit leads error: ", error);
 
-      toast.error(error?.response?.data?.message || "Something went wrong while submitting leads.", ERROR_TOAST)
+      toast.error(
+        error?.response?.data?.message ||
+          "Something went wrong while submitting leads.",
+        ERROR_TOAST,
+      );
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleConversationSave = (rowId: number, comments: string) => {
+    updateRow(rowId, "comments", comments);
   };
 
   const inputClass =
@@ -159,9 +172,7 @@ const SubmitLeads = () => {
           {/* Header */}
 
           <div className="flex items-center justify-between">
-            <h1 className="text-lg font-semibold text-foreground">
-              Submit Leads
-            </h1>
+            <h1 className="text-lg font-semibold text-foreground"></h1>
             <button
               onClick={handleSubmit}
               disabled={submitting}
@@ -192,7 +203,7 @@ const SubmitLeads = () => {
                   <th className="px-2 py-2 min-w-[200px]">
                     Phone <span className="text-destructive">*</span>
                   </th>
-                  <th className="px-2 py-2 min-w-[160px]">Comments</th>
+                  <th className="px-2 py-2 min-w-[160px]">Conversation</th>
                   <th className="px-2 py-2 w-8"></th>
                 </tr>
               </thead>
@@ -254,44 +265,42 @@ const SubmitLeads = () => {
                     {/* Phone */}
 
                     <td className="px-2 py-1.5">
-                      <div className="flex gap-1">
-                        <select
-                          value={row.countryCode}
-                          onChange={(e) =>
-                            updateRow(row.id, "countryCode", e.target.value)
-                          }
-                          className="h-8 w-[7.5rem] shrink-0 rounded border border-border bg-background px-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-                        >
-                          {countries.map((c) => (
-                            <option key={c.code} value={c.code}>
-                              {c.label} {c.code}
-                            </option>
-                          ))}
-                        </select>
-                        <input
-                          type="tel"
-                          placeholder="555-0123"
-                          value={row.phone}
-                          onChange={(e) =>
-                            updateRow(row.id, "phone", e.target.value)
-                          }
-                          className={inputClass}
-                        />
-                      </div>
+                      <input
+                        type="tel"
+                        placeholder="555-0123"
+                        value={row.phone}
+                        onChange={(e) =>
+                          updateRow(row.id, "phone", e.target.value)
+                        }
+                        className={inputClass}
+                      />
                     </td>
 
-                    {/* Comments */}
+                    {/* Conversation */}
 
                     <td className="px-2 py-1.5">
-                      <textarea
-                        placeholder="Optional notes…"
-                        value={row.comments}
-                        onChange={(e) =>
-                          updateRow(row.id, "comments", e.target.value)
-                        }
-                        rows={1}
-                        className="h-8 w-full resize-none rounded border border-border bg-background px-2 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-                      />
+                      <div className="relative">
+                        <textarea
+                          rows={2}
+                          value={row.comments}
+                          onChange={(e) =>
+                            updateRow(row.id, "comments", e.target.value)
+                          }
+                          className="min-h-[60px] w-full resize-none rounded border border-border bg-background px-2 py-1.5 pr-8 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                          placeholder="Client conversation..."
+                        />
+
+                        {/* expand button */}
+
+                        <button
+                          type="button"
+                          onClick={() => openConversationModal(row.id)}
+                          className="absolute right-1.5 top-1.5 rounded p-1 text-muted-foreground hover:text-[#37B3A6] hover:bg-muted/60 transition-colors"
+                          title="Expand"
+                        >
+                          <Expand className="h-4 w-4" />
+                        </button>
+                      </div>
                     </td>
 
                     {/* Remove row */}
@@ -334,6 +343,18 @@ const SubmitLeads = () => {
           duplicates={resultData.skipped ?? []}
         />
       )}
+
+      {/* Conversation Modal */}
+
+      <ConversationModal
+        open={activeConversationRow !== null}
+        onClose={() => setActiveConversationRow(null)}
+        rowId={activeConversationRow}
+        initialValue={
+          rows.find((r) => r.id === activeConversationRow)?.comments ?? ""
+        }
+        onSave={handleConversationSave}
+      />
     </>
   );
 };

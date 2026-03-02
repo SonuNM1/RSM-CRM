@@ -11,7 +11,8 @@ import { getLeads,
     getLeadById,
     addLeadActivity,
     getLeadActivities,
-    getMyLeads
+    getMyLeads,
+    getMyLeadById
 } from "../controllers/lead.controller.js";
 
 const router = express.Router() ; 
@@ -19,10 +20,6 @@ const router = express.Router() ;
 // submit the leads
 
 router.post("/submit-leads", protect, allowRoles("Super_Admin", "Admin", "Email_Executive"), submitLeads)
-
-// lead status 
-
-router.get("/lead-statuses", protect, getLeadStatuses) ; 
 
 // get leads 
 
@@ -40,6 +37,16 @@ router.patch("/assign", protect, allowRoles("Super_Admin", "Admin"), assignLeads
 
 router.get("/my-pipeline", protect, allowRoles("BDE_Executive", "Admin", "Super_Admin"), getMyPipelineLeads) ; 
 
+// lead status 
+
+router.get("/lead-statuses", protect, getLeadStatuses) ; 
+
+// get leads (email team) - leads submitted by me 
+
+router.get("/leads-submitted", protect, allowRoles("Email_Executive"), getMyLeads) ;
+
+router.get('/leads-submitted/:leadId', protect, allowRoles("Email_Executive"), getMyLeadById); // particular lead (email team)
+
 // update lead status 
 
 router.patch("/:id/status", protect, allowRoles("BDE_Executive", "Admin", "Super_Admin"), updateLeadStatus) ; 
@@ -56,10 +63,7 @@ router.post("/:leadId/activity", protect, allowRoles("BDE_Executive", "Admin", "
 
 router.get("/:leadId/activities", protect, allowRoles("BDE_Executive", "Admin", "Super_Admin"), getLeadActivities)
 
-// get leads (email team) - leads submitted by me 
-
-router.get("/my-leads", protect, allowRoles("Email_Executive"), getMyLeads) ;
+// 
 
 export default router ; 
 
-// /api/leads/my-leads

@@ -85,7 +85,7 @@ export function LeadsTable({
               Submitted By
             </TableHead>
             <TableHead className="font-semibold text-foreground">
-              Date
+              Submitted On
             </TableHead>
             <TableHead className="font-semibold text-foreground">
               Status

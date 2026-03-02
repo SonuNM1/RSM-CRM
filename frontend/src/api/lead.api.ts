@@ -85,6 +85,8 @@ export const getLeadActivitiesAPI = (leadId: string) => {
   return api.get(`/api/leads/${leadId}/activities`) ; 
 }
 
+// get leads that you submitted (email team)
+
 export const getMyLeadsAPI = (params: {
   page?: number ; 
   limit?: number ; 
@@ -92,5 +94,11 @@ export const getMyLeadsAPI = (params: {
   dateFrom?: string ; 
   dateTo?: string ; 
 }) => {
-  return api.get(`${BASE_URL}/api/leads/my-leads`, {params})
+  return api.get("/api/leads/leads-submitted", {params})
 }
+
+// get leads that submitted (email team) - particular 
+
+export const getMyLeadByIdAPI = (leadId: string) => {
+  return api.get(`/api/leads/leads-submitted/${leadId}`);
+};

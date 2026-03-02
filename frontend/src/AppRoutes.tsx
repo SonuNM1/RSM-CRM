@@ -21,6 +21,7 @@ import BdeDashboard from "./pages/Dashboard/BdeDashboard";
 import SuperAdminDashboard from "./pages/Dashboard/SuperAdminDashboard";
 import Meetings from "./pages/Meetings";
 import BdeTimeline from "./pages/bde/BdeTimeline";
+import LeadDetail from "./pages/emailTeam/LeadDetail";
 
 const AppRoutes = () => {
   return (
@@ -61,6 +62,7 @@ const AppRoutes = () => {
 
         <Route element={<ProtectedRoute allowedRoles={["Email_Executive"]} />}>
           <Route path="/my-leads" element={<MyLeads />} />
+          <Route path="/my-leads/:leadId" element={<LeadDetail />} />
           <Route path="/submit-leads" element={<SubmitLeads />} />
         </Route>
 
