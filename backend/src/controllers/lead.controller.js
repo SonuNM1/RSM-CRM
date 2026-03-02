@@ -469,3 +469,42 @@ export const getLeadActivities = async (req, res) => {
     });
   }
 };
+
+// Get the leads submitted by me (createdBy = logged-in user) - email team dashboard
+
+export const getMyLeads = async (req, res) => {
+  try {
+    const { page = 1, limit = 8 } = req.query;
+
+    const pageNum  = Math.max(1, parseInt(page));
+    const limitNum = Math.min(50, Math.max(1, parseInt(limit)));
+    const skip     = (pageNum - 1) * limitNum;
+
+    // Force createdBy to logged-in user
+    const query = buildLeadQuery({
+      ...req.query,
+      createdBy: req.user._id.toString(),
+    });
+
+    const [leads, total] = await Promise.all([
+      Lead.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limitNum)
+        .select("name email website phone status createdAt")
+        .lean(),
+      Lead.countDocuments(query),
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      leads,
+      total,
+      page: pageNum,
+      totalPages: Math.ceil(total / limitNum),
+    });
+  } catch (err) {
+    console.error("getMyLeads error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};

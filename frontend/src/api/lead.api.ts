@@ -84,3 +84,13 @@ export const updateLeadActivityAPI = (leadId: string, data: { status?: string; n
 export const getLeadActivitiesAPI = (leadId: string) => {
   return api.get(`/api/leads/${leadId}/activities`) ; 
 }
+
+export const getMyLeadsAPI = (params: {
+  page?: number ; 
+  limit?: number ; 
+  search?: string ;
+  dateFrom?: string ; 
+  dateTo?: string ; 
+}) => {
+  return api.get(`${BASE_URL}/api/leads/my-leads`, {params})
+}

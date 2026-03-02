@@ -10,7 +10,8 @@ import { getLeads,
     updateLeadStatus, 
     getLeadById,
     addLeadActivity,
-    getLeadActivities
+    getLeadActivities,
+    getMyLeads
 } from "../controllers/lead.controller.js";
 
 const router = express.Router() ; 
@@ -55,4 +56,10 @@ router.post("/:leadId/activity", protect, allowRoles("BDE_Executive", "Admin", "
 
 router.get("/:leadId/activities", protect, allowRoles("BDE_Executive", "Admin", "Super_Admin"), getLeadActivities)
 
+// get leads (email team) - leads submitted by me 
+
+router.get("/my-leads", protect, allowRoles("Email_Executive"), getMyLeads) ;
+
 export default router ; 
+
+// /api/leads/my-leads
