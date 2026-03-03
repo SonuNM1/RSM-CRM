@@ -1,5 +1,5 @@
 import Lead from "../models/leads.model.js";
-import fs from "fs";
+import User from '../models/user.model.js' ; 
 import { fileURLToPath } from "url";
 import path from "path";
 import { normalizeWebsite } from "../utils/normalizeWebsite.js";
@@ -7,6 +7,8 @@ import { buildLeadQuery } from "../utils/lead/buildLeadQuery.js";
 import { buildPagination } from "../utils/lead/buildPagination.js";
 import { ADMIN_ONLY_STATUSES, ALL_STATUSES } from "../constants/leadStatus.js";
 import mongoose from "mongoose";
+import {leadsSubmittedTemplate} from "../utils/emailTemplates/leadsSubmittedTemplate.js"
+import sendEmail from "../utils/email.js"
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -79,30 +81,57 @@ export const submitLeads = async (req, res) => {
       batchWebsites.add(website);
     }
 
-    // notify admins if any leads were inserted 
+    if(skipped.length > 0){
+      await User.findByIdAndUpdate(req.user._id, {
+        $inc: {
+          duplicatesSkipped: skipped.length 
+        }
+      })
+    }
 
-    if(inserted.length > 0){
-      try{
+    // notify admins if any leads were inserted
+
+    if (inserted.length > 0) {
+      try {
+        console.log("📧 Attempting to send email notification...");
+
         const admins = await User.find(
-          { role: { $in: ['Admin', 'Super_Admin'] } },
-          'email'
-        ).lean() ; 
+          { role: { $in: ["Admin", "Super_Admin"] } },
+          "email",
+        ).lean();
+
+        // fetching employee name 
+
+        const fullUser = await User.findById(req.user._id).select('name').lean() ; 
+        const employeeName = fullUser?.name ?? "An employee" ; 
+
+        console.log("👥 Admins found:", admins); // check if admins are being fetched
+        console.log("🔑 SendGrid key exists:", !!process.env.SENDGRID_API_KEY);
+        console.log("📨 From email:", process.env.SENDGRID_FROM_EMAIL);
+        console.log('👤 req.user:', req.user);
 
         const { subject, html } = leadsSubmittedTemplate({
-          employeeName: req.user.name,
+          employeeName,
           insertedCount: inserted.length,
           skippedCount: skipped.length,
-          leads: inserted.map(l => ({ name: l.name, email: l.email, website: l.website }))
+          leads: inserted.map((l) => ({
+            name: l.name,
+            email: l.email,
+            website: l.website,
+          })),
         });
 
+        console.log("📝 Email subject:", subject);
+
         await Promise.all(
-          admins.map(admin =>
-            sendEmail({ to: admin.email, subject, html, text: subject })
-          )
+          admins.map((admin) =>
+            sendEmail({ to: admin.email, subject, html, text: subject }),
+          ),
         );
 
-      }catch(emailError){
-        console.error('Failed to send lead submission email:', emailError);
+        console.log('✅ Emails sent successfully');
+      } catch (emailError) {
+        console.error("Failed to send lead submission email:", emailError);
       }
     }
 
@@ -542,21 +571,22 @@ export const getMyLeads = async (req, res) => {
 // Get the leads submitted by me - email team dashboard (particular lead)
 
 export const getMyLeadById = async (req, res) => {
-
-  console.log('getMyLeadById hit:', req.params.leadId, req.user._id); 
+  console.log("getMyLeadById hit:", req.params.leadId, req.user._id);
 
   try {
     const lead = await Lead.findOne({
       _id: req.params.leadId,
-      createdBy: req.user._id, // ensuring they can only access their own leads 
-    }).lean()
+      createdBy: req.user._id, // ensuring they can only access their own leads
+    }).lean();
 
-    if (!lead) return res.status(404).json({ success: false, message: 'Lead not found' });
+    if (!lead)
+      return res
+        .status(404)
+        .json({ success: false, message: "Lead not found" });
 
     return res.status(200).json({ success: true, lead });
-
   } catch (error) {
-    console.error('getMyLeadById error:', error);
-    return res.status(500).json({ success: false, message: 'Server error' });
+    console.error("getMyLeadById error:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
   }
-}
+};

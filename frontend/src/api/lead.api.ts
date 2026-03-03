@@ -14,13 +14,13 @@ export interface LeadPayload {
 // submit leads API
 
 export const submitLeadsAPI = (payload: { leads: LeadPayload[] }) => {
-  return api.post(`${BASE_URL}/api/leads/submit-leads`, payload);
+  return api.post(`/api/leads/submit-leads`, payload);
 };
 
 // Get leads
 
 export const fetchLeadsAPI = (params?: Record<string, any>) => {
-  return api.get(`${BASE_URL}/api/leads/all-leads`, {
+  return api.get(`/api/leads/all-leads`, {
     params,
   });
 };
@@ -28,7 +28,7 @@ export const fetchLeadsAPI = (params?: Record<string, any>) => {
 // lead status 
 
 export const fetchLeadStatusesAPI = () => {
-  return api.get(`${BASE_URL}/api/leads/lead-statuses`)
+  return api.get(`/api/leads/lead-statuses`)
 }
 
 // fetch lead statuses
@@ -40,7 +40,7 @@ export const fetchNewLeadsAPI = (params?: {
   fromDate?: string;
   toDate?: string;
 }) => {
-  return api.get(`${BASE_URL}/api/leads/all-leads/new`, {
+  return api.get(`/api/leads/all-leads/new`, {
     params,
   });
 };

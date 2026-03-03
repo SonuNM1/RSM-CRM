@@ -1,3 +1,4 @@
+import { INFO_TOAST } from "@/constants/toast";
 import { ConversationModalProps } from "@/types/lead";
 import { Sparkles, X } from "lucide-react";
 import React, { useEffect, useState } from "react";
@@ -21,7 +22,7 @@ const ConversationModal: React.FC<ConversationModalProps> = ({
   if (!open || rowId === null) return null;
 
   const handleEnhance = () => {
-    toast.info("🚧 Feature under development, coming soon!");
+    toast.info("Feature under development, coming soon!", INFO_TOAST);
   };
 
   return (

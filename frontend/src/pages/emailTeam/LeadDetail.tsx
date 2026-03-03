@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { ERROR_TOAST } from "@/constants/toast";
+import { ERROR_TOAST, INFO_TOAST } from "@/constants/toast";
 import { Lead } from "@/types/lead";
 import FullPageLoader from "@/components/FullPageLoader";
 import { getMyLeadByIdAPI } from "@/api/lead.api";
@@ -71,11 +71,11 @@ const LeadDetail = () => {
   }
 
   const handleUpdate = () => {
-    toast.info("Feature under development — coming soon!");
+    toast.info("Feature under development — coming soon!", INFO_TOAST);
   };
 
   const handleDelete = () => {
-    toast.info("Feature under development — coming soon!");
+    toast.info("Feature under development — coming soon!", INFO_TOAST);
   };
 
   // ── Not found state ──

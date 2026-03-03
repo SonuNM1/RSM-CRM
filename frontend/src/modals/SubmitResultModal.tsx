@@ -9,8 +9,8 @@ interface DuplicateLead {
 interface LeadResultModalProps {
   open: boolean;
   totalSubmitted: number;
-  successCount: number; 
-  duplicateCount: number ; 
+  successCount: number;
+  duplicateCount: number;
   insertedCount: number;
   skippedCount: number;
   duplicates: DuplicateLead[];
@@ -29,11 +29,11 @@ const SubmitResultModal: React.FC<LeadResultModalProps> = ({
 
   const allDuplicates = insertedCount === 0 && skippedCount > 0;
 
-  const title = allDuplicates
-    ? "Duplicate Leads Detected"
+  const titleConfig = allDuplicates
+    ? { text: "Duplicate Leads Detected", color: "text-rose-500" }
     : skippedCount > 0
-    ? "Leads Processed"
-    : "Leads Submitted Successfully";
+      ? { text: "Leads Processed", color: "text-amber-500" }
+      : { text: "Leads Submitted Successfully", color: "text-emerald-500" };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -44,7 +44,9 @@ const SubmitResultModal: React.FC<LeadResultModalProps> = ({
       <div className="relative z-10 w-full max-w-lg mx-4 rounded-lg border border-border bg-background shadow-xl">
         {/* Header */}
         <div className="border-b border-border px-5 py-4">
-          <h2 className="text-base font-semibold text-foreground">{title}</h2>
+          <h2 className="text-base font-semibold text-foreground">
+            {titleConfig.text}
+          </h2>
         </div>
 
         {/* Body */}
@@ -71,7 +73,7 @@ const SubmitResultModal: React.FC<LeadResultModalProps> = ({
 
           {/* All duplicate info */}
           {allDuplicates && (
-            <div className="rounded border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
+            <div className="rounded border border-rose-100 bg-rose-50 px-4 py-3 text-sm text-rose-400">
               All submitted leads already exist. No new leads were added.
             </div>
           )}

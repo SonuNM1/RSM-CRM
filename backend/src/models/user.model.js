@@ -62,8 +62,11 @@ const userSchema = new mongoose.Schema({
     lastOTPRequestAt: {
         type: Date, 
         default: null 
+    },
+    duplicatesSkipped: {
+        type: Number, 
+        default: 8 
     }
-
 }, {timestamps: true})
 
 export default mongoose.model("User", userSchema)

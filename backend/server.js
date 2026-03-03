@@ -7,6 +7,7 @@ import chalk from "chalk" ;
 import authRoutes from "./src/routes/auth.routes.js"
 import userRoutes from "./src/routes/user.routes.js"
 import leadRoutes from "./src/routes/lead.routes.js"
+import dashboardRoutes from "./src/routes/dashboard.routes.js"
 import cookieParser from "cookie-parser"
 
 const app = express() ; 
@@ -33,6 +34,7 @@ app.get('/', (req, res) => {
 app.use("/api/auth/", authRoutes) 
 app.use("/api/users", userRoutes) ; 
 app.use("/api/leads", leadRoutes) ; 
+app.use("/api/dashboard", dashboardRoutes) ; 
 
 // server runs only if DB connects 
 

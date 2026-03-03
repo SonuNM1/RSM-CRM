@@ -16,7 +16,7 @@ export const ERROR_TOAST = {
 
 export const INFO_TOAST = {
   style: {
-    background: "rgba(30, 64, 175, 0.95)",
+    background: "rgba(161, 98, 7, 0.95)",
     color: "#fff",
     fontWeight: "bold",
   },

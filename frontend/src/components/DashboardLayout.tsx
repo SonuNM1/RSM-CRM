@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
-  Settings,
   UserPlus,
   LogOut,
   Menu,
@@ -13,7 +12,6 @@ import {
   User,
   FilePlus,
   Inbox,
-  Briefcase,
   ClipboardList,
   Send,
   Workflow,
@@ -22,7 +20,7 @@ import {
 import { logout } from "@/api/auth.api";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
-import { ERROR_TOAST } from "@/constants/toast";
+import { ERROR_TOAST, INFO_TOAST } from "@/constants/toast";
 
 // Navigation items for the sidebar
 
@@ -150,9 +148,11 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
               <path d="M2 12l10 5 10-5" />
             </svg>
           </div>
-          <span className="text-base font-display font-bold text-primary-foreground tracking-tight">
+          <Link to="/">
+            <span className="text-base font-display font-bold text-primary-foreground tracking-tight">
             LeadFlow
           </span>
+          </Link>
           <button
             className="lg:hidden ml-auto text-sidebar-foreground"
             onClick={() => setSidebarOpen(false)}
@@ -238,7 +238,10 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
 
             {/* Notifications */}
 
-            <button className="relative p-2 rounded-lg text-muted-foreground hover:bg-secondary">
+            <button
+              className="relative p-2 rounded-lg text-muted-foreground hover:bg-secondary"
+              onClick={() => toast.info("Feature under development - coming soon!", INFO_TOAST)}
+            >
               <Bell size={18} />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-accent rounded-full" />
             </button>
