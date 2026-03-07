@@ -6,14 +6,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { LayoutDashboard, MoreHorizontal } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
 import type { Lead } from "@/types/lead";
 import { StatusBadge } from "./StatusBadge";
 
@@ -21,12 +13,14 @@ interface LeadsTableProps {
   leads: Lead[];
   selectedIds: string[];
   onSelectionChange: (ids: string[]) => void;
+  onRowClick?: (id: string) => void;
 }
 
 export function LeadsTable({
   leads,
   selectedIds,
   onSelectionChange,
+  onRowClick 
 }: LeadsTableProps) {
   if (leads.length === 0) {
     return (
@@ -61,6 +55,7 @@ export function LeadsTable({
                 ref={(el) => {
                   if (el) el.indeterminate = someSelected;
                 }}
+                onClick={(e) => e.stopPropagation()}
                 onChange={(e) => {
                   const checked = e.target.checked;
                   
@@ -90,18 +85,20 @@ export function LeadsTable({
             <TableHead className="font-semibold text-foreground">
               Status
             </TableHead>
-            <TableHead className="font-semibold text-foreground w-12"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {leads.map((lead) => (
             <TableRow
               key={lead.id}
+              className={onRowClick ? "cursor-pointer hover:bg-muted/30 transition-colors" : ""}
+              onClick={() => onRowClick?.(lead.id)}
             >
               <TableCell>
                 <input
                   type="checkbox"
                   checked={selectedIds.includes(lead.id)}
+                  onClick={(e) => e.stopPropagation()}
                   onChange={(e) => {
                     e.stopPropagation()
                     toggleRow(lead.id)
@@ -128,22 +125,6 @@ export function LeadsTable({
               </TableCell>
               <TableCell>
                 <StatusBadge status={lead.status} />
-              </TableCell>
-              <TableCell>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem>View Details</DropdownMenuItem>
-                    <DropdownMenuItem>Edit Lead</DropdownMenuItem>
-                    <DropdownMenuItem className="text-destructive">
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
               </TableCell>
             </TableRow>
           ))}

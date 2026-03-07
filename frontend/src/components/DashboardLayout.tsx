@@ -15,12 +15,14 @@ import {
   ClipboardList,
   Send,
   Workflow,
-  Presentation
+  Presentation,
+  LineChart,
+  Clock
 } from "lucide-react";
 import { logout } from "@/api/auth.api";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
-import { ERROR_TOAST, INFO_TOAST } from "@/constants/toast";
+import { ERROR_TOAST, INFO_TOAST, SUCCESS_TOAST } from "@/constants/toast";
 
 // Navigation items for the sidebar
 
@@ -78,6 +80,18 @@ const navItems = [
     icon: Presentation,
     path: "/meetings",
     roles: ["BDE_Executive", "Admin", "Super_Admin"]
+  },
+  {
+    label: "Scheduler",
+    icon: Clock,
+    path: "/schedule",
+    roles: ["BDE_Executive"]
+  },
+  {
+    label: "Analytics",
+    icon: LineChart,
+    path: "/analytics",
+    roles: ["Admin", "Super_Admin"]
   }
 ];
 
@@ -102,7 +116,7 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
       await logout();
       setUser(null) ; 
 
-      toast.success("Logged out successfully");
+      toast.success("Logged out successfully", SUCCESS_TOAST);
 
       // redirect to login page
 

@@ -14,10 +14,6 @@ export const protect = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.userId);
 
-    console.log("User found:", user?.email);
-    console.log("User status:", user?.status);
-    console.log("User role:", user?.role);
-
     if (!user || user.status !== "ACTIVE") {
       return res.status(403).json({
         message: "Access denied",
@@ -34,6 +30,11 @@ export const protect = async (req, res, next) => {
     next();
   } catch (error) {
     console.log("Protect middleware error: ", error);
+
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({ message: "Token expired" });
+    }
+
     res.status(401).json({
       message: "Invalid token",
     });

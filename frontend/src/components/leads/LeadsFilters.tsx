@@ -16,24 +16,9 @@ import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon, Filter, X } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import type { DateRange } from "react-day-picker";
 import { useEffect, useState } from "react";
-import type { LeadStatus } from "@/types/lead";
-import { LeadCreator } from "@/types/user";
-
-interface FiltersState {
-  search: string;
-  status: LeadStatus | "All";
-  submittedBy: string;
-  dateRange: DateRange | undefined;
-}
-
-interface LeadsFiltersProps {
-  filters: FiltersState;
-  onChange: (filters: FiltersState) => void;
-  statuses: LeadStatus[];
-  employees: LeadCreator[];
-}
+import type { FiltersState, LeadsFiltersProps, LeadStatus } from "@/types/lead";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
 
 export function LeadsFilters({
   filters,
@@ -87,15 +72,14 @@ export function LeadsFilters({
 
   return (
     <div className="flex flex-wrap items-center gap-3">
-
       {/* Search */}
 
       <Input
         value={search}
         onChange={(e) => {
-          const val = e.target.value ; 
-          setSearch(val) ; 
-          onChange({...filters, search: val})
+          const val = e.target.value;
+          setSearch(val);
+          onChange({ ...filters, search: val });
         }}
         className="w-64"
         placeholder="Search name, website or email"
@@ -112,7 +96,7 @@ export function LeadsFilters({
         <SelectTrigger className="w-40">
           <SelectValue placeholder="Status" />
         </SelectTrigger>
-        <SelectContent>http://localhost:8080/invite
+        <SelectContent>
           <SelectItem value="All">All Statuses</SelectItem>
           {statuses.map((s) => (
             <SelectItem key={s} value={s}>
@@ -122,24 +106,40 @@ export function LeadsFilters({
         </SelectContent>
       </Select>
 
-      {/* Submitted By */}
-
-      <Select
-        value={draft.submittedBy}
-        onValueChange={(v) => setDraft((d) => ({ ...d, submittedBy: v }))}
-      >
-        <SelectTrigger className="w-44">
-          <SelectValue placeholder="Submitted By" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="All">All Employees</SelectItem>
-          {employees.map((e) => (
-            <SelectItem key={e._id} value={e._id}>
-              {e.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      {/* Submitted By - searchable select */}
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" className="w-44 justify-start font-normal">
+            {draft.submittedBy === "All"
+              ? "All Employees"
+              : (employees.find((e) => e._id === draft.submittedBy)?.name ??
+                "All Employees")}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-44 p-0">
+          <Command>
+            <CommandInput placeholder="Search employee..." />
+            <CommandEmpty>No employee found.</CommandEmpty>
+            <CommandGroup>
+              <CommandItem
+                onSelect={() => setDraft((d) => ({ ...d, submittedBy: "All" }))}
+              >
+                All Employees
+              </CommandItem>
+              {employees.map((e) => (
+                <CommandItem
+                  key={e._id}
+                  onSelect={() =>
+                    setDraft((d) => ({ ...d, submittedBy: e._id }))
+                  }
+                >
+                  {e.name}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </Command>
+        </PopoverContent>
+      </Popover>
 
       {/* Date Range */}
 

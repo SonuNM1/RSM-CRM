@@ -75,7 +75,12 @@ export const getLeadByIdAPI = (leadId: string) => {
 
 // Update lead status (with notes)
 
-export const updateLeadActivityAPI = (leadId: string, data: { status?: string; note?: string }) => {
+export const updateLeadActivityAPI = (leadId: string, data: {
+  status?: string; 
+  note?: string; 
+  meetingDate?: string;
+  followUpDate?: string;
+}) => {
   return api.post(`/api/leads/${leadId}/activity`, data);
 };
 

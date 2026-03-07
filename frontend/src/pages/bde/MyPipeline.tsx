@@ -206,6 +206,7 @@ const MyPipeline = () => {
           />
 
           {/* Filter + Clear — only show when date is selected */}
+
           {(dateFrom || dateTo) && (
             <>
               <Button
@@ -277,7 +278,7 @@ const MyPipeline = () => {
                 {paginated.map((lead) => (
                   <tr
                     key={lead.id}
-                    className="border-b border-border last:border-0 hover:bg-muted/30"
+                    className="border-b border-border last:border-0 hover:bg-muted/30 cursor-pointer"
                     onClick={() => navigate(`/my-pipeline/${lead.id}`)}
                   >
                     <td className="px-4 py-3 font-medium">{lead.name}</td>
@@ -297,9 +298,6 @@ const MyPipeline = () => {
                     <td className="px-4 py-3 hidden lg:table-cell">
                       {lead?.phone}
                     </td>
-                    {/* <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">
-                      {lead.assignedBy ?? "—"}
-                    </td> */}
                     <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">
                       {lead.assignedAt
                         ? format(new Date(lead.assignedAt), "MMM d, yyyy")
@@ -348,7 +346,9 @@ const MyPipeline = () => {
             </table>
           </div>
         </div>
+
         {/* Pagination */}
+        
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4">
           <p className="text-sm text-muted-foreground">
             Showing {start}–{end} of {leads.length} leads

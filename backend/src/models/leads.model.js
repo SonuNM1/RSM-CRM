@@ -72,7 +72,15 @@ const leadSchema = new mongoose.Schema(
               default: Date.now 
             }
         }
-    ]
+    ],
+    meetingDate: {
+      type: Date, 
+      default: null 
+    }, 
+    followUpDate: {
+      type: Date, 
+      default: null 
+    }
   },
   { timestamps: true },
 );

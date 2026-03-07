@@ -14,13 +14,15 @@ export const LEAD_STATUS_COLORS = {
   "Converted":       "bg-green-200 text-green-800",
   "Lost":            "bg-red-100 text-red-700",
   "Trash":           "bg-slate-100 text-slate-500",
+  "Meeting Scheduled": "bg-violet-100 text-violet-700",
 };
 
-export const ADMIN_ONLY_STATUSES = ["Qualified", "Converted", "Lost", "Trash"];
+export const ADMIN_ONLY_STATUSES = ["Converted"];
 
 export const BDE_STATUSES = [
   "RNR", "Answered", "Number NA", "Out of Service",
-  "Can't Connect", "DNS", "Follow Up", "Interested", "Not Interested"
+  "Can't Connect", "DNS", "Follow Up", "Interested", "Not Interested",
+  "Meeting Scheduled", "Qualified", "Lost", "Trash" 
 ];
 
 export const ALL_STATUSES = Object.keys(LEAD_STATUS_COLORS);

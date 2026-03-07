@@ -1,10 +1,17 @@
 import express from "express";
 import { protect } from "../middleware/auth.middleware.js";
 import { allowRoles } from "../middleware/role.middleware.js";
-import { getEmailLeadStats } from "../controllers/dashboard.controller.js";
+import { getBdeDashboardStats, getEmailLeadStats, getFollowUps } from "../controllers/dashboard.controller.js";
 
 const router = express.Router() ; 
 
+// email team
+
 router.get('/email/my-stats', protect, allowRoles("Email_Executive"), getEmailLeadStats) ; 
+
+// bde team 
+
+router.get("/follow-ups", protect, allowRoles("BDE_Executive"), getFollowUps);
+router.get("/bde-stats", protect, allowRoles("BDE_Executive"), getBdeDashboardStats);
 
 export default router ; 

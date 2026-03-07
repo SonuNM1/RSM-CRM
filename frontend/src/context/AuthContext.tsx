@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { getMe } from "@/api/auth.api";
 import { toast } from "sonner";
+import api from "@/api/axios";
 
 const AuthContext = createContext(null);
 
@@ -16,21 +17,29 @@ export const AuthProvider = ({ children }) => {
       }
 
       try {
+        await api.post("/api/auth/refresh") ; 
         const res = await getMe();
         setUser(res.data.user);
-      } catch(error) {
+      } catch (error) {
         setUser(null);
 
-        if(error?.response?.status === 401){
-          setUser(null) ; 
+        if (error?.response?.status === 401) {
+          setUser(null);
         }
-
       } finally {
         setLoading(false);
       }
     };
 
     fetchMe();
+  }, []);
+
+  // listen for logout event 
+
+  useEffect(() => {
+    const handleForceLogout = () => setUser(null);
+    window.addEventListener("auth:logout", handleForceLogout);
+    return () => window.removeEventListener("auth:logout", handleForceLogout);
   }, []);
 
   return (

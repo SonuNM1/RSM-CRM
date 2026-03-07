@@ -46,7 +46,7 @@ const Login = () => {
   };
 
   const handleContactAdmin = () => {
-    toast.info("🚧 This feature is under development.", INFO_TOAST)
+    toast.info("This feature is under development.", INFO_TOAST)
   }
 
   if(loading) return <FullPageLoader/>

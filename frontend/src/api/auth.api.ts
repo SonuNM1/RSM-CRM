@@ -4,14 +4,14 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL ;
 
 export const adminLogin = (email: string, password: string, rememberMe: boolean) => {
     return api.post(
-        `${BASE_URL}/api/auth/admin/login`, 
+        `/api/auth/admin/login`, 
         { email, password, rememberMe }
     )
 }
 
 export const getMe = () => {
     return api.get(
-        `${BASE_URL}/api/auth/me`
+        `/api/auth/me`
     ) ; 
 }
 

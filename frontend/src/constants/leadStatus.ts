@@ -17,12 +17,13 @@ export const LEAD_STATUS_COLORS: Record<string, string> = {
 };
 
 // BDE cannot set these — only Admin/Super_Admin
-export const ADMIN_ONLY_STATUSES = ["Qualified", "Converted", "Lost", "Trash"];
+export const ADMIN_ONLY_STATUSES = ["Converted"];
 
 // All statuses BDE can set
 export const BDE_STATUSES = [
   "RNR", "Answered", "Number NA", "Out of Service",
-  "Can't Connect", "DNS", "Follow Up", "Interested", "Not Interested"
+  "Can't Connect", "DNS", "Follow Up", "Interested", 
+  "Not Interested", "Lost", "Trash", "Qualified"
 ];
 
 export const ALL_STATUSES = Object.keys(LEAD_STATUS_COLORS);

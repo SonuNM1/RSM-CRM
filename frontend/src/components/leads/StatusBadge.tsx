@@ -17,6 +17,7 @@ const statusStyles: Record<string, string> = {
   "Converted": "bg-green-200 text-green-800",
   "Lost": "bg-red-100 text-red-700",
   "Trash": "bg-slate-100 text-slate-500",
+  "Meeting Scheduled": "bg-violet-100 text-violet-700",
 };
 
 interface StatusBadgeProps {

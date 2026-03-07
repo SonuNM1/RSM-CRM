@@ -150,7 +150,21 @@ export const updateUser = async (req, res) => {
 
 // Fetch users for dropdown filters. - used for submitted by filter
 
-export const getUsersForFilter = async (req, res) => {};
+export const getUsersForFilter = async (req, res) => {
+  try {
+    const users = await User.find(
+      { role: "Email_Executive", status: "ACTIVE" },
+      "name email",
+    ).lean();
+
+    return res.status(200).json({
+      success: true,
+      users,
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
 
 export const getUsersSearchableDropdown = async (req, res) => {
   try {

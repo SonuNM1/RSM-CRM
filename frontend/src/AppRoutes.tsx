@@ -22,6 +22,8 @@ import SuperAdminDashboard from "./pages/Dashboard/SuperAdminDashboard";
 import Meetings from "./pages/Meetings";
 import BdeTimeline from "./pages/bde/BdeTimeline";
 import LeadDetail from "./pages/emailTeam/LeadDetail";
+import AdminLeadDetail from "./pages/admin/AdminLeadDetail";
+import FollowUps from "./pages/bde/FollowUps";
 
 const AppRoutes = () => {
   return (
@@ -48,6 +50,8 @@ const AppRoutes = () => {
           <Route path="/invite" element={<InviteEmployee />} />
           <Route path="/all-employees" element={<AllEmployees />} />
           <Route path="/assign-leads" element={<AssignLeads />} />
+          <Route path="/all-leads/:leadId" element={<AdminLeadDetail />} />
+          <Route path="/analytics" element={<AdminLeadDetail />} />
         </Route>
 
         {/* BDE */}
@@ -56,6 +60,7 @@ const AppRoutes = () => {
           <Route path="/my-pipeline" element={<MyPipeline />} />
           <Route path="/meetings" element={<Meetings />} />
           <Route path="/my-pipeline/:leadId" element={<BdeTimeline />} />
+          <Route path="/dashboard/follow-ups" element={<FollowUps />} />
         </Route>
 
         {/* Email Executive */}

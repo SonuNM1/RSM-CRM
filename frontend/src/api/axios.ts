@@ -9,7 +9,7 @@ let isRefreshing = false;
 let failedQueue: any[] = [];
 
 const processQueue = (error: any, token = null) => {
-  failedQueue.forEach(prom => {
+  failedQueue.forEach((prom) => {
     if (error) {
       prom.reject(error);
     } else {
@@ -21,8 +21,8 @@ const processQueue = (error: any, token = null) => {
 };
 
 api.interceptors.response.use(
-  res => res,
-  async error => {
+  (res) => res,
+  async (error) => {
     const originalRequest = error.config;
 
     if (!originalRequest || originalRequest._retry) {
@@ -33,6 +33,10 @@ api.interceptors.response.use(
       error.response?.status === 401 &&
       originalRequest.url?.includes("/api/auth/refresh")
     ) {
+      if (window.location.pathname !== "/") {
+        window.dispatchEvent(new Event("auth:logout"));
+        window.location.href = "/";
+      }
       return Promise.reject(error);
     }
 
@@ -51,14 +55,21 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        await api.post("/api/auth/refresh");
+        await axios.post(
+          `${import.meta.env.VITE_API_BASE_URL}/api/auth/refresh`,
+          {},
+          { withCredentials: true },
+        );
+
         processQueue(null);
 
-        await new Promise(r => setTimeout(r, 0)) ; 
+        await new Promise((r) => setTimeout(r, 0));
 
         return api(originalRequest);
       } catch (err) {
         processQueue(err);
+        window.dispatchEvent(new Event("auth:logout"));
+        window.location.href = "/";
         return Promise.reject(err);
       } finally {
         isRefreshing = false;
@@ -66,8 +77,7 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
-
 
 export default api;

@@ -7,6 +7,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -15,11 +25,12 @@ import { toast } from "sonner";
 import { ERROR_TOAST, SUCCESS_TOAST } from "@/constants/toast";
 import { ADMIN_ONLY_STATUSES, BDE_STATUSES } from "@/constants/leadStatus";
 import { updateLeadActivityAPI } from "@/api/lead.api";
+import { Input } from "@/components/ui/input";
 
 interface UpdateLeadCardProps {
   leadId: string;
   currentStatus: string;
-  onUpdate: () => void; // callback to refresh data after update
+  onUpdate: () => void;
 }
 
 export const UpdateLeadCard = ({
@@ -27,16 +38,32 @@ export const UpdateLeadCard = ({
   currentStatus,
   onUpdate,
 }: UpdateLeadCardProps) => {
-
   const { user } = useAuth();
 
   const [status, setStatus] = useState("");
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
+  const [meetingDate, setMeetingDate] = useState("");
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [followUpDate, setFollowUpDate] = useState("");
 
   const handleSave = async () => {
-    if (!note.trim() && status === currentStatus) {
-      toast.error("Please add a note or change the status", ERROR_TOAST);
+    if (!status) {
+      toast.error("Please select a status", ERROR_TOAST);
+      return;
+    }
+    if (status === currentStatus) {
+      toast.error("Status is already set to " + currentStatus, ERROR_TOAST);
+      return;
+    }
+
+    if (status === "Follow Up" && !followUpDate) {
+      toast.error("Please select a follow-up date", ERROR_TOAST);
+      return;
+    }
+
+    if (status === "Meeting Scheduled" && !meetingDate) {
+      toast.error("Please select a meeting date", ERROR_TOAST);
       return;
     }
 
@@ -44,76 +71,147 @@ export const UpdateLeadCard = ({
       setLoading(true);
 
       const res = await updateLeadActivityAPI(leadId, {
-        status: status !== currentStatus ? status : undefined,
+        status: status && status !== currentStatus ? status : undefined,
         note: note.trim() || undefined,
+        meetingDate: status === "Meeting Scheduled" ? meetingDate : undefined,
+        followUpDate: status === "Follow Up" ? followUpDate : undefined,
       });
 
-      if(res.data.success){
-        toast.success("Lead updated successfully", SUCCESS_TOAST); 
-        setNote("") ; 
-        onUpdate() ; 
+      if (res.data.success) {
+        toast.success("Lead updated successfully", SUCCESS_TOAST);
+        setNote("");
+        setStatus("");
+        setMeetingDate("");
+        setFollowUpDate("");
+        onUpdate();
       }
-
-    } catch (error: any) {
+    } catch (error) {
       console.error("Update lead card error: ", error);
-      toast.error(error?.response?.data?.message || "Failed to update lead", ERROR_TOAST);
+      toast.error(
+        error?.response?.data?.message || "Failed to update lead",
+        ERROR_TOAST,
+      );
     } finally {
-      setLoading(false) ; 
+      setLoading(false);
+    }
+  };
+
+  const handleSaveClick = () => {
+    if (status === "Meeting Scheduled") {
+      if (!meetingDate) {
+        toast.error("Please select a meeting date first", ERROR_TOAST);
+        return;
+      }
+      setShowConfirm(true);
+    } else {
+      handleSave();
     }
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Update Lead</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Update Lead</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Status */}
+
+          <div className="space-y-2">
+            <Label>Status</Label>
+            <Select value={status} onValueChange={setStatus}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                {BDE_STATUSES.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {s}
+                  </SelectItem>
+                ))}
+                {ADMIN_ONLY_STATUSES.map((s) => (
+                  <SelectItem
+                    key={s}
+                    value={s}
+                    disabled={user?.role === "BDE_Executive"}
+                  >
+                    {s}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Meeting date - only shown when Meeting scheduled is selected */}
+
+          {status === "Meeting Scheduled" && (
+            <div className="space-y-2">
+              <Label>Meeting Date & Time</Label>
+              <Input
+                type="datetime-local"
+                value={meetingDate}
+                onChange={(e) => setMeetingDate(e.target.value)}
+              />
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <Label>Note</Label>
+            <Textarea
+              placeholder="Add a note about this interaction..."
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              rows={4}
+            />
+          </div>
+
+          <Button
+            className="w-full bg-primary hover:bg-primary/90"
+            onClick={handleSaveClick}
+            disabled={loading}
+          >
+            {loading ? "Saving..." : "Save Update"}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Cofirmation dialog for Meeting Scheduled */}
+
+      <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Meeting</AlertDialogTitle>
+            <AlertDialogDescription>
+              Has the client confirmed the meeting? This lead will appear in the
+              Meetings section.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowConfirm(false);
+                handleSave();
+              }}
+            >
+              Yes, Schedule Meeting
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Date Picker */}
+
+      {status === "Follow Up" && (
         <div className="space-y-2">
-          <Label>Status</Label>
-          <Select value={status} onValueChange={setStatus}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select status" />
-            </SelectTrigger>
-            <SelectContent>
-              {BDE_STATUSES.map((s) => (
-                <SelectItem key={s} value={s}>
-                  {s}
-                </SelectItem>
-              ))}
-              {ADMIN_ONLY_STATUSES.map((s) => (
-                <SelectItem
-                  key={s}
-                  value={s}
-                  disabled={user?.role === "BDE_Executive"}
-                >
-                  {s}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div className="space-y-2">
-          <Label>Note</Label>
-          <Textarea
-            placeholder="Add a note about this interaction..."
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            rows={4}
+          <Label>Follow Up Date & Time</Label>
+          <Input
+            type="datetime-local"
+            value={followUpDate}
+            onChange={(e) => setFollowUpDate(e.target.value)}
           />
         </div>
-        <Button
-          className="w-full bg-primary hover:bg-primary/90"
-          onClick={handleSave}
-          disabled={loading}
-        >
-          {loading ? "Saving..." : "Save Update"}
-        </Button>
-        <p className="text-xs text-muted-foreground text-center">
-          Saving will add an entry to the activity timeline. Status update is
-          optional.
-        </p>
-      </CardContent>
-    </Card>
+      )}
+    </>
   );
 };

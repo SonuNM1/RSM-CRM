@@ -1,5 +1,5 @@
 import Lead from "../models/leads.model.js";
-import User from '../models/user.model.js' ; 
+import User from "../models/user.model.js";
 import { fileURLToPath } from "url";
 import path from "path";
 import { normalizeWebsite } from "../utils/normalizeWebsite.js";
@@ -7,8 +7,9 @@ import { buildLeadQuery } from "../utils/lead/buildLeadQuery.js";
 import { buildPagination } from "../utils/lead/buildPagination.js";
 import { ADMIN_ONLY_STATUSES, ALL_STATUSES } from "../constants/leadStatus.js";
 import mongoose from "mongoose";
-import {leadsSubmittedTemplate} from "../utils/emailTemplates/leadsSubmittedTemplate.js"
-import sendEmail from "../utils/email.js"
+import { leadsSubmittedTemplate } from "../utils/emailTemplates/leadsSubmittedTemplate.js";
+import { leadsAssignedTemplate } from "../utils/emailTemplates/leadsAssignedTemplate.js";
+import sendEmail from "../utils/email.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -81,12 +82,12 @@ export const submitLeads = async (req, res) => {
       batchWebsites.add(website);
     }
 
-    if(skipped.length > 0){
+    if (skipped.length > 0) {
       await User.findByIdAndUpdate(req.user._id, {
         $inc: {
-          duplicatesSkipped: skipped.length 
-        }
-      })
+          duplicatesSkipped: skipped.length,
+        },
+      });
     }
 
     // notify admins if any leads were inserted
@@ -100,15 +101,17 @@ export const submitLeads = async (req, res) => {
           "email",
         ).lean();
 
-        // fetching employee name 
+        // fetching employee name
 
-        const fullUser = await User.findById(req.user._id).select('name').lean() ; 
-        const employeeName = fullUser?.name ?? "An employee" ; 
+        const fullUser = await User.findById(req.user._id)
+          .select("name")
+          .lean();
+        const employeeName = fullUser?.name ?? "An employee";
 
         console.log("👥 Admins found:", admins); // check if admins are being fetched
         console.log("🔑 SendGrid key exists:", !!process.env.SENDGRID_API_KEY);
         console.log("📨 From email:", process.env.SENDGRID_FROM_EMAIL);
-        console.log('👤 req.user:', req.user);
+        console.log("👤 req.user:", req.user);
 
         const { subject, html } = leadsSubmittedTemplate({
           employeeName,
@@ -129,7 +132,7 @@ export const submitLeads = async (req, res) => {
           ),
         );
 
-        console.log('✅ Emails sent successfully');
+        console.log("✅ Emails sent successfully");
       } catch (emailError) {
         console.error("Failed to send lead submission email:", emailError);
       }
@@ -316,12 +319,51 @@ export const assignLeads = async (req, res) => {
       },
     );
 
+    // send email to the assigned BDE employee
+
+    if (result.modifiedCount > 0) {
+      try {
+        console.log("📧 Sending assignment email...");
+
+        const [assignee, assignedBy, assignedLeads] = await Promise.all([
+          User.findById(assignedTo).select("name email").lean(),
+          User.findById(req.user._id).select("name").lean(),
+          Lead.find({ _id: { $in: leadIds } })
+            .select("name email website")
+            .lean(),
+        ]);
+
+        console.log("👤 Assignee:", assignee);
+        console.log("👤 Assigned by:", assignedBy);
+        console.log("📋 Leads:", assignedLeads);
+
+        const { subject, html } = leadsAssignedTemplate({
+          assigneeName: assignee.name,
+          assignedByName: assignedBy.name,
+          leadCount: result.modifiedCount,
+          leads: assignedLeads.map((l) => ({
+            name: l.name,
+            email: l.email,
+            website: l.website,
+          })),
+        });
+
+        console.log("📝 Subject:", subject);
+
+        await sendEmail({ to: assignee.email, subject, html, text: subject });
+
+        console.log("✅ Assignment email sent to:", assignee.email);
+      } catch (error) {
+        console.error("Failed to send assignment email:", error);
+      }
+    }
+
     return res.status(200).json({
       success: true,
       message: `${result.modifiedCount} leads assigned successfully`,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Assign leads error:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to assign leads",
@@ -448,8 +490,8 @@ export const getLeadById = async (req, res) => {
 export const addLeadActivity = async (req, res) => {
   try {
     const { leadId } = req.params;
-    const { status, note } = req.body;
-    const userId = req.user.id; // From auth middleware
+    const { status, note, meetingDate, followUpDate } = req.body;
+    const userId = req.user._id;
 
     const lead = await Lead.findById(leadId);
     if (!lead) {
@@ -461,7 +503,7 @@ export const addLeadActivity = async (req, res) => {
 
     const activity = {
       type: status ? "status_change" : "note",
-      content: note || `Status changed from ${lead.status} to ${status}`,
+      content: note || "",
       updatedBy: userId,
       timestamp: new Date(),
     };
@@ -470,6 +512,14 @@ export const addLeadActivity = async (req, res) => {
       activity.oldStatus = lead.status;
       activity.newStatus = status;
       lead.status = status;
+    }
+
+    if (status === "Meeting Scheduled" && meetingDate) {
+      lead.meetingDate = new Date(meetingDate);
+    }
+
+    if (status === "Follow Up" && followUpDate) {
+      lead.followUpDate = new Date(followUpDate);
     }
 
     lead.activities.push(activity);

@@ -6,10 +6,12 @@ import chalk from "chalk";
 import { createAuthSession } from "../services/authSession.service.js";
 import sendEmail from "../utils/email.js";
 import { inviteUserTemplate } from "../utils/emailTemplates/inviteUser.template.js";
-import { generateRefreshToken, generateToken } from "../utils/generateToken.js";
-import jwt from "jsonwebtoken" ; 
+import { generateToken } from "../utils/generateToken.js";
+import jwt from "jsonwebtoken";
 
 export const refreshAccessToken = async (req, res) => {
+  console.log("Refresh cookies:", req.cookies);
+
   try {
     if (!req.cookies?.refreshToken) {
       return res.status(401).json({
@@ -57,9 +59,10 @@ export const refreshAccessToken = async (req, res) => {
 
     res.cookie("accessToken", newAccessToken, {
       httpOnly: true,
-      secure: false, // true only in production HTTPS
-      sameSite: "lax",
+      secure: false,
+      sameSite: "lax", // ← changed from "none"
       maxAge: 15 * 60 * 1000,
+      path: "/",
     });
 
     return res.status(200).json({
@@ -317,14 +320,16 @@ export const adminLogin = async (req, res) => {
       .cookie("accessToken", accessToken, {
         httpOnly: true,
         secure: false,
-        sameSite: "lax",
+        sameSite: "lax", // ← changed from "none"
         maxAge: 15 * 60 * 1000,
+        path: "/",
       })
       .cookie("refreshToken", refreshToken, {
         httpOnly: true,
         secure: false,
-        sameSite: "lax",
+        sameSite: "lax", // ← changed from "none"
         maxAge: refreshTokenMaxAge,
+        path: "/",
       })
       .status(200)
       .json({
@@ -372,12 +377,12 @@ export const logout = async (req, res) => {
 
     res.clearCookie("accessToken", {
       httpOnly: true,
-      sameSite: "strict",
+      sameSite: "none",
       secure: process.env.NODE_ENV === "production",
     });
     res.clearCookie("refreshToken", {
       httpOnly: true,
-      sameSite: "strict",
+      sameSite: "none",
       secure: process.env.NODE_ENV === "production",
     });
 
