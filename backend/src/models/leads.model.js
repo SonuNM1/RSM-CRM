@@ -31,6 +31,7 @@ const leadSchema = new mongoose.Schema(
         "Converted",
         "Lost",
         "Trash",
+        "Meeting Scheduled",
       ],
       default: "New",
     },
@@ -79,6 +80,14 @@ const leadSchema = new mongoose.Schema(
     }, 
     followUpDate: {
       type: Date, 
+      default: null 
+    }, 
+    hadMeeting: {
+      type: Boolean, 
+      default: false 
+    }, 
+    outcomeStatus: {
+      type: String, 
       default: null 
     }
   },

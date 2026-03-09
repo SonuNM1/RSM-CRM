@@ -1,6 +1,4 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
-import FullPageLoader from "@/components/FullPageLoader";
 import Index from "./pages/Index";
 import ForgotPassword from "./pages/ForgotPassword";
 import OtpVerification from "./pages/OtpVerification";
@@ -17,18 +15,20 @@ import AllEmployees from "./pages/admin/AllEmployees";
 import AssignLeads from "./pages/admin/AssignLeads";
 import MyPipeline from "./pages/bde/MyPipeline";
 import MyLeads from "./pages/emailTeam/MyLeads";
-import BdeDashboard from "./pages/Dashboard/BdeDashboard";
-import SuperAdminDashboard from "./pages/Dashboard/SuperAdminDashboard";
-import Meetings from "./pages/Meetings";
+import Meetings from "./pages/bde/Meetings";
 import BdeTimeline from "./pages/bde/BdeTimeline";
 import LeadDetail from "./pages/emailTeam/LeadDetail";
 import AdminLeadDetail from "./pages/admin/AdminLeadDetail";
 import FollowUps from "./pages/bde/FollowUps";
+import ConvertedLeads from "./pages/bde/ConvertedLeads";
+import Scheduler from "./pages/bde/Scheduler";
+import Analytics from "./pages/admin/Analytics";
 
 const AppRoutes = () => {
   return (
     <BrowserRouter>
       <Routes>
+
         {/* Public */}
 
         <Route path="/" element={<Index />} />
@@ -51,7 +51,8 @@ const AppRoutes = () => {
           <Route path="/all-employees" element={<AllEmployees />} />
           <Route path="/assign-leads" element={<AssignLeads />} />
           <Route path="/all-leads/:leadId" element={<AdminLeadDetail />} />
-          <Route path="/analytics" element={<AdminLeadDetail />} />
+          <Route path="/analytics" element={<Analytics />} />
+          <Route path="/meetings" element={<Meetings />} /> 
         </Route>
 
         {/* BDE */}
@@ -61,6 +62,8 @@ const AppRoutes = () => {
           <Route path="/meetings" element={<Meetings />} />
           <Route path="/my-pipeline/:leadId" element={<BdeTimeline />} />
           <Route path="/dashboard/follow-ups" element={<FollowUps />} />
+          <Route path="/dashboard/converted-leads" element={<ConvertedLeads />} />
+          <Route path="/schedule" element={<Scheduler />} />
         </Route>
 
         {/* Email Executive */}

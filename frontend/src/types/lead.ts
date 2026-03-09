@@ -8,6 +8,12 @@ export type LeadStatus =
   | "Qualified" | "Converted" | "Lost" | "Trash"
   | "Meeting Scheduled"; 
 
+export interface UpdateLeadCardProps {
+  leadId: string;
+  currentStatus: string;
+  onUpdate: () => void;
+}
+
 export interface Lead {
   id: string;
   name: string;
@@ -54,4 +60,51 @@ export interface LeadsFiltersProps {
   onChange: (filters: FiltersState) => void;
   statuses: string[];
   employees: LeadCreator[];
+}
+
+export interface Meeting {
+  _id: string;
+  name: string;
+  website: string;
+  meetingDate: string;
+  status: string;
+  hadMeeting: boolean;
+  outcomeStatus: string | null;
+  assignedTo?: { _id: string; name: string };
+}
+
+export interface PipelineLead {
+  _id: string;
+  name: string;
+  website: string;
+  status: string;
+  updatedAt: string;
+}
+
+export interface PipelineHealthItem {
+  status: string; 
+  count: number; 
+}
+export interface FollowUpLead {
+  _id: string;
+  name: string;
+  website: string;
+  followUpDate: string;
+}
+
+export interface SectionProps {
+  title: string;
+  dotColor: string;
+  borderColor: string;
+  leads: FollowUpLead[];
+}
+
+export interface ConvertedLead {
+  _id: string;
+  name: string;
+  website: string;
+  email: string;
+  phone: string;
+  status: string;
+  updatedAt: string;
 }

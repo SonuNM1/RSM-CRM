@@ -15,3 +15,17 @@ export const getFollowUpsAPI = () => {
 export const getBdeDashboardStatsAPI = () => {
   return api.get("/api/dashboard/bde-stats") ; 
 };
+
+export const getMeetingStatsAPI = () => {
+  return api.get("/api/dashboard/meeting-stats")
+}
+
+export const getMeetingsAPI = () => {
+  return api.get("/api/dashboard/meetings")
+};
+
+export const updateMeetingOutcomeAPI = (leadId: string, data: { happened: boolean; status: string; note?: string }) =>
+  api.patch(`/api/dashboard/${leadId}/meeting-outcome`, data);
+
+
+export const getConvertedLeadsAPI = () => api.get("/api/dashboard/converted-leads");

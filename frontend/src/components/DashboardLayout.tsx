@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -17,12 +17,13 @@ import {
   Workflow,
   Presentation,
   LineChart,
-  Clock
+  Clock,
 } from "lucide-react";
 import { logout } from "@/api/auth.api";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 import { ERROR_TOAST, INFO_TOAST, SUCCESS_TOAST } from "@/constants/toast";
+import { getMeetingStatsAPI } from "@/api/dashboard.api";
 
 // Navigation items for the sidebar
 
@@ -31,68 +32,69 @@ const navItems = [
     label: "Dashboard",
     icon: LayoutDashboard,
     path: "/dashboard",
-    roles: ["Super_Admin", "Admin", "Email_Executive", "BDE_Executive"]
+    roles: ["Super_Admin", "Admin", "Email_Executive", "BDE_Executive"],
   },
   {
     label: "Invite Employee",
     icon: UserPlus,
     path: "/invite",
-    roles: ["Super_Admin", "Admin"]
+    roles: ["Super_Admin", "Admin"],
   },
   {
     label: "All Employees",
     icon: Users,
     path: "/all-employees",
-    roles: ["Super_Admin", "Admin"]
+    roles: ["Super_Admin", "Admin"],
   },
   {
     label: "Submit Leads",
     icon: FilePlus,
     path: "/submit-leads",
-    roles: ["Email_Executive"]
+    roles: ["Email_Executive"],
   },
   {
     label: "All Leads",
     icon: ClipboardList,
     path: "/all-leads",
-    roles: ["Admin", "Super_Admin"]
+    roles: ["Admin", "Super_Admin"],
   },
   {
     label: "My Leads",
     icon: Inbox,
     path: "/my-leads",
-    roles: ["Email_Executive"]
+    roles: ["Email_Executive"],
   },
   {
     label: "Assign Leads",
     icon: Send,
     path: "/assign-leads",
-    roles: ["Admin", "Super_Admin"]
+    roles: ["Admin", "Super_Admin"],
   },
   {
     label: "My Pipeline",
     icon: Workflow,
     path: "/my-pipeline",
-    roles: ["BDE_Executive"]
+    roles: ["BDE_Executive"],
   },
   {
     label: "Meetings",
     icon: Presentation,
     path: "/meetings",
-    roles: ["BDE_Executive", "Admin", "Super_Admin"]
+    roles: ["BDE_Executive", "Admin", "Super_Admin"],
+    showBadge: true,
   },
   {
     label: "Scheduler",
     icon: Clock,
     path: "/schedule",
-    roles: ["BDE_Executive"]
+    roles: ["BDE_Executive"],
   },
   {
     label: "Analytics",
     icon: LineChart,
     path: "/analytics",
-    roles: ["Admin", "Super_Admin"]
-  }
+    roles: ["Admin", "Super_Admin"],
+  },
 ];
 
 interface DashboardLayoutProps {
@@ -101,20 +103,36 @@ interface DashboardLayoutProps {
 }
 
 const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
-
   const navigate = useNavigate();
 
   const location = useLocation(); // for getting current URL path for active link highlighting
   const [sidebarOpen, setSidebarOpen] = useState(false); // mobile sidebar toggle
 
-  const {user, loading, setUser} = useAuth() ; 
- 
+  const { user, loading, setUser } = useAuth();
+
+  const [upcomingMeetings, setUpcomingMeetings] = useState<number | null>(null);
+
+  useEffect(() => {
+    const fetchMeetingCount = async () => {
+      try {
+        const res = await getMeetingStatsAPI();
+        if (res.data.success) setUpcomingMeetings(res.data.upcoming);
+      } catch (error) {
+        console.error("Meeting stats error:", error);
+      }
+    };
+    const meetingRoles = ["BDE_Executive", "Admin", "Super_Admin"];
+    if (user?.role && meetingRoles.includes(user.role)) {
+      fetchMeetingCount();
+    }
+  }, [user]);
+
   // handling logout
 
   const handleLogout = async () => {
     try {
       await logout();
-      setUser(null) ; 
+      setUser(null);
 
       toast.success("Logged out successfully", SUCCESS_TOAST);
 
@@ -164,8 +182,8 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
           </div>
           <Link to="/">
             <span className="text-base font-display font-bold text-primary-foreground tracking-tight">
-            LeadFlow
-          </span>
+              LeadFlow
+            </span>
           </Link>
           <button
             className="lg:hidden ml-auto text-sidebar-foreground"
@@ -181,24 +199,33 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
           {navItems
             .filter((item) => item.roles.includes(user?.role))
             .map((item) => {
-            const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + "/");
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
-                  ${
-                    isActive
-                      ? "bg-crm-sidebar-active text-accent-foreground"
-                      : "text-sidebar-foreground hover:bg-crm-sidebar-hover hover:text-primary-foreground"
-                  }`}
-              >
-                <item.icon size={18} />
-                {item.label}
-              </Link>
-            );
-          })}
+              const isActive =
+                location.pathname === item.path ||
+                location.pathname.startsWith(item.path + "/");
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setSidebarOpen(false)}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+  ${
+    isActive
+      ? "bg-crm-sidebar-active text-accent-foreground"
+      : "text-sidebar-foreground hover:bg-crm-sidebar-hover hover:text-primary-foreground"
+  }`}
+                >
+                  <item.icon size={18} />
+                  <span className="flex-1">{item.label}</span>
+                  {item.showBadge &&
+                    upcomingMeetings !== null &&
+                    upcomingMeetings > 0 && (
+                      <span className="ml-auto text-xs font-semibold bg-violet-500 text-white rounded-full px-2 py-0.5 min-w-[20px] text-center">
+                        {upcomingMeetings}
+                      </span>
+                    )}
+                </Link>
+              );
+            })}
         </nav>
 
         {/* Bottom section of sidebar. Sign out link */}
@@ -254,7 +281,12 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
 
             <button
               className="relative p-2 rounded-lg text-muted-foreground hover:bg-secondary"
-              onClick={() => toast.info("Feature under development - coming soon!", INFO_TOAST)}
+              onClick={() =>
+                toast.info(
+                  "Notifications will be available in a later version!",
+                  INFO_TOAST,
+                )
+              }
             >
               <Bell size={18} />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-accent rounded-full" />
@@ -262,7 +294,7 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
 
             {/* User profile dropdown */}
 
-            <button 
+            <button
               className="flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-lg hover:bg-secondary"
               onClick={() => navigate("/settings")}
             >

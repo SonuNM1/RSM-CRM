@@ -516,10 +516,12 @@ export const addLeadActivity = async (req, res) => {
 
     if (status === "Meeting Scheduled" && meetingDate) {
       lead.meetingDate = new Date(meetingDate);
+      activity.meetingDate = new Date(meetingDate);
     }
 
     if (status === "Follow Up" && followUpDate) {
       lead.followUpDate = new Date(followUpDate);
+      activity.followUpDate = new Date(followUpDate);
     }
 
     lead.activities.push(activity);

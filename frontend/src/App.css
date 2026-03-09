@@ -40,3 +40,8 @@
 .read-the-docs {
   color: #888;
 }
+
+.follow-up-tabs [data-state="active"] {
+  background-color: #19B3A6 !important;
+  color: white !important;
+}

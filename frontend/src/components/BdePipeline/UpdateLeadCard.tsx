@@ -26,12 +26,8 @@ import { ERROR_TOAST, SUCCESS_TOAST } from "@/constants/toast";
 import { ADMIN_ONLY_STATUSES, BDE_STATUSES } from "@/constants/leadStatus";
 import { updateLeadActivityAPI } from "@/api/lead.api";
 import { Input } from "@/components/ui/input";
-
-interface UpdateLeadCardProps {
-  leadId: string;
-  currentStatus: string;
-  onUpdate: () => void;
-}
+import { UpdateLeadCardProps } from "@/types/lead";
+import { TimeSelector } from "../TimeSelector";
 
 export const UpdateLeadCard = ({
   leadId,
@@ -46,6 +42,12 @@ export const UpdateLeadCard = ({
   const [meetingDate, setMeetingDate] = useState("");
   const [showConfirm, setShowConfirm] = useState(false);
   const [followUpDate, setFollowUpDate] = useState("");
+
+  const HOURS = Array.from({ length: 12 }, (_, i) =>
+    String(i + 1).padStart(2, "0"),
+  );
+  const MINUTES = ["00", "15", "30", "45"];
+  const AMPM = ["AM", "PM"];
 
   const handleSave = async () => {
     if (!status) {
@@ -147,10 +149,21 @@ export const UpdateLeadCard = ({
           {status === "Meeting Scheduled" && (
             <div className="space-y-2">
               <Label>Meeting Date & Time</Label>
-              <Input
-                type="datetime-local"
+              <TimeSelector
                 value={meetingDate}
-                onChange={(e) => setMeetingDate(e.target.value)}
+                onChange={setMeetingDate}
+                label="Meeting Date & Time"
+              />
+            </div>
+          )}
+
+          {status === "Follow Up" && (
+            <div className="space-y-2">
+              <Label>Follow Up Date & Time</Label>
+              <TimeSelector
+                value={followUpDate}
+                onChange={setFollowUpDate}
+                label="Follow Up Date & Time"
               />
             </div>
           )}
@@ -199,19 +212,6 @@ export const UpdateLeadCard = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Date Picker */}
-
-      {status === "Follow Up" && (
-        <div className="space-y-2">
-          <Label>Follow Up Date & Time</Label>
-          <Input
-            type="datetime-local"
-            value={followUpDate}
-            onChange={(e) => setFollowUpDate(e.target.value)}
-          />
-        </div>
-      )}
     </>
   );
 };
