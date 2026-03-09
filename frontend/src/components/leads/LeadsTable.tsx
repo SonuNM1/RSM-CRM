@@ -6,30 +6,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { Lead } from "@/types/lead";
+import type { Lead, LeadsTableProps } from "@/types/lead";
 import { StatusBadge } from "./StatusBadge";
-
-interface LeadsTableProps {
-  leads: Lead[];
-  selectedIds: string[];
-  onSelectionChange: (ids: string[]) => void;
-  onRowClick?: (id: string) => void;
-}
 
 export function LeadsTable({
   leads,
   selectedIds,
   onSelectionChange,
-  onRowClick 
+  onRowClick,
+  loading,
 }: LeadsTableProps) {
-  if (leads.length === 0) {
-    return (
-      <div className="flex h-40 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground">
-        No leads found
-      </div>
-    );
-  }
-
   const allSelected = selectedIds.length === leads.length && leads.length > 0;
 
   const someSelected =
@@ -58,11 +44,11 @@ export function LeadsTable({
                 onClick={(e) => e.stopPropagation()}
                 onChange={(e) => {
                   const checked = e.target.checked;
-                  
-                  if(checked){
-                    onSelectionChange(leads.map((l) => l.id))
+
+                  if (checked) {
+                    onSelectionChange(leads.map((l) => l.id));
                   } else {
-                    onSelectionChange([]) ; 
+                    onSelectionChange([]);
                   }
                 }}
               />
@@ -88,46 +74,70 @@ export function LeadsTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {leads.map((lead) => (
-            <TableRow
-              key={lead.id}
-              className={onRowClick ? "cursor-pointer hover:bg-muted/30 transition-colors" : ""}
-              onClick={() => onRowClick?.(lead.id)}
-            >
-              <TableCell>
-                <input
-                  type="checkbox"
-                  checked={selectedIds.includes(lead.id)}
-                  onClick={(e) => e.stopPropagation()}
-                  onChange={(e) => {
-                    e.stopPropagation()
-                    toggleRow(lead.id)
-                  }}
-                />
-              </TableCell>
-              <TableCell className="font-medium">{lead.name}</TableCell>
-              <TableCell className="text-muted-foreground">
-                {lead.email}
-              </TableCell>
-              <TableCell>
-                <a
-                  href={lead.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline"
-                >
-                  {lead.website.replace("https://", "")}
-                </a>
-              </TableCell>
-              <TableCell>{lead.submittedBy}</TableCell>
-              <TableCell className="text-muted-foreground">
-                {new Date(lead.submittedDate).toLocaleDateString("en-GB")}
-              </TableCell>
-              <TableCell>
-                <StatusBadge status={lead.status} />
+          {loading ? (
+            <TableRow>
+              <TableCell
+                colSpan={7}
+                className="h-40 text-center text-muted-foreground"
+              >
+                Loading leads...
               </TableCell>
             </TableRow>
-          ))}
+          ) : leads.length === 0 ? (
+            <TableRow>
+              <TableCell
+                colSpan={7}
+                className="h-40 text-center text-muted-foreground"
+              >
+                No leads found
+              </TableCell>
+            </TableRow>
+          ) : (
+            leads.map((lead) => (
+              <TableRow
+                key={lead.id}
+                className={
+                  onRowClick
+                    ? "cursor-pointer hover:bg-muted/30 transition-colors"
+                    : ""
+                }
+                onClick={() => onRowClick?.(lead.id)}
+              >
+                <TableCell>
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.includes(lead.id)}
+                    onClick={(e) => e.stopPropagation()}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      toggleRow(lead.id);
+                    }}
+                  />
+                </TableCell>
+                <TableCell className="font-medium">{lead.name}</TableCell>
+                <TableCell className="text-muted-foreground">
+                  {lead.email}
+                </TableCell>
+                <TableCell>
+                  <a
+                    href={lead.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline"
+                  >
+                    {lead.website.replace("https://", "")}
+                  </a>
+                </TableCell>
+                <TableCell>{lead.submittedBy}</TableCell>
+                <TableCell className="text-muted-foreground">
+                  {new Date(lead.submittedDate).toLocaleDateString("en-GB")}
+                </TableCell>
+                <TableCell>
+                  <StatusBadge status={lead.status} />
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </div>

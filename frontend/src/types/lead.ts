@@ -108,3 +108,40 @@ export interface ConvertedLead {
   status: string;
   updatedAt: string;
 }
+
+export interface RecentLead {
+  _id: string;
+  name: string;
+  website: string;
+  status: string;
+  createdAt: string;
+  assignedTo?: { name: string };
+}
+
+export interface TeamPerformanceItem {
+  name: string;
+  converted: number;
+}
+
+export interface StatusDistributionItem {
+  status: string;
+  count: number;
+}
+
+export interface Employee {
+  _id: string;
+  name: string;
+  email: string;
+  role: "Super_Admin" | "Admin" | "Email_Executive" | "BDE_Executive";
+  department: string;
+  status: "ACTIVE" | "INVITED" | "SUSPENDED";
+  createdAt: string;
+}
+
+export interface LeadsTableProps {
+  leads: Lead[];
+  selectedIds: string[];
+  onSelectionChange: (ids: string[]) => void;
+  onRowClick?: (id: string) => void;
+  loading?: boolean;
+}

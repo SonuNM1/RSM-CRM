@@ -55,7 +55,7 @@ const AssignLeads = () => {
   const [submittedByUsers, setSubmittedByUsers] = useState([]);
   const [assignToUsers, setAssignToUsers] = useState([]);
 
-  const [refreshKey, setRefreshKey] = useState(0) ; 
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // Options array
 
@@ -106,7 +106,14 @@ const AssignLeads = () => {
     };
 
     fetchLeads();
-  }, [page, pageSize, appliedEmployeeFilter, appliedDateFrom, appliedDateTo, refreshKey]);
+  }, [
+    page,
+    pageSize,
+    appliedEmployeeFilter,
+    appliedDateFrom,
+    appliedDateTo,
+    refreshKey,
+  ]);
 
   // searchable select (users)
 
@@ -121,7 +128,7 @@ const AssignLeads = () => {
         if (submittedRes.data.success) {
           setSubmittedByUsers(
             submittedRes.data.users.map((u: any) => ({
-              id: u._id, 
+              id: u._id,
               name: u.name,
             })),
           );
@@ -130,7 +137,7 @@ const AssignLeads = () => {
         if (assignRes.data.success) {
           setAssignToUsers(
             assignRes.data.users.map((u: any) => ({
-              id: u._id, 
+              id: u._id,
               name: u.name,
             })),
           );
@@ -205,7 +212,7 @@ const AssignLeads = () => {
 
         // Refetch leads
         setPage(1);
-        setRefreshKey((k) => k + 1) ; 
+        setRefreshKey((k) => k + 1);
       }
     } catch (error) {
       console.error("Assignment failed:", error);
@@ -215,10 +222,6 @@ const AssignLeads = () => {
 
   const hasActiveFilters =
     appliedEmployeeFilter || appliedDateFrom || appliedDateTo;
-
-  if (loading) {
-    return <FullPageLoader />;
-  }
 
   console.log("Selected Employee (assignTo):", assignTo);
   console.log("Selected Leads Count:", selected.length);
@@ -413,7 +416,16 @@ const AssignLeads = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {leads.length === 0 ? (
+                  {loading ? (
+                    <tr>
+                      <td
+                        colSpan={7}
+                        className="px-4 py-12 text-center text-muted-foreground"
+                      >
+                        Loading leads...
+                      </td>
+                    </tr>
+                  ) : leads.length === 0 ? (
                     <tr key="empty">
                       <td
                         colSpan={7}
@@ -423,64 +435,57 @@ const AssignLeads = () => {
                       </td>
                     </tr>
                   ) : (
-                    leads.map((lead) => {
-                      console.log("ROW", lead.id, selected.includes(lead.id));
-                      console.log("leads: ", leads);
-                      return (
-                        <tr
-                          key={lead.id}
-                          className={cn(
-                            "border-b border-border last:border-0 transition-colors",
-                            selected.includes(lead.id)
-                              ? "bg-primary/[0.04]"
-                              : "hover:bg-muted/30",
-                          )}
-                        >
-                          <td className="px-4 py-3">
-                            <Checkbox
-                              checked={selected.includes(lead.id)}
-                              onCheckedChange={(checked) => {
-                                if (checked) {
-                                  setSelected((prev) => [...prev, lead.id]);
-                                } else {
-                                  setSelected((prev) =>
-                                    prev.filter((id) => id !== lead.id),
-                                  );
-                                }
-                              }}
-                            />
-                          </td>
-                          <td className="px-4 py-3 font-medium text-foreground">
-                            {lead.name}
-                          </td>
-                          <td className="px-4 py-3 text-muted-foreground">
-                            {lead.email}
-                          </td>
-                          <td className="px-4 py-3">
-                            <a
-                              href={lead.website}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-primary hover:underline"
-                            >
-                              {lead.website.replace("https://", "")}
-                            </a>
-                          </td>
-                          <td className="px-4 py-3 text-muted-foreground">
-                            {lead.submittedBy}
-                          </td>
-                          <td className="px-4 py-3 text-muted-foreground">
-                            {format(
-                              new Date(lead.submittedDate),
-                              "MMM d, yyyy",
-                            )}
-                          </td>
-                          <td className="px-4 py-3">
-                            <StatusBadge status={lead.status} />
-                          </td>
-                        </tr>
-                      );
-                    })
+                    leads.map((lead) => (
+                      <tr
+                        key={lead.id}
+                        className={cn(
+                          "border-b border-border last:border-0 transition-colors",
+                          selected.includes(lead.id)
+                            ? "bg-primary/[0.04]"
+                            : "hover:bg-muted/30",
+                        )}
+                      >
+                        <td className="px-4 py-3">
+                          <Checkbox
+                            checked={selected.includes(lead.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelected((prev) => [...prev, lead.id]);
+                              } else {
+                                setSelected((prev) =>
+                                  prev.filter((id) => id !== lead.id),
+                                );
+                              }
+                            }}
+                          />
+                        </td>
+                        <td className="px-4 py-3 font-medium text-foreground">
+                          {lead.name}
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground">
+                          {lead.email}
+                        </td>
+                        <td className="px-4 py-3">
+                          <a
+                            href={lead.website}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline"
+                          >
+                            {lead.website.replace("https://", "")}
+                          </a>
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground">
+                          {lead.submittedBy}
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground">
+                          {format(new Date(lead.submittedDate), "MMM d, yyyy")}
+                        </td>
+                        <td className="px-4 py-3">
+                          <StatusBadge status={lead.status} />
+                        </td>
+                      </tr>
+                    ))
                   )}
                 </tbody>
               </table>

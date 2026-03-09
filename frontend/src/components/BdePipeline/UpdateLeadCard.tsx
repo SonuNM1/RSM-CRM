@@ -25,7 +25,6 @@ import { toast } from "sonner";
 import { ERROR_TOAST, SUCCESS_TOAST } from "@/constants/toast";
 import { ADMIN_ONLY_STATUSES, BDE_STATUSES } from "@/constants/leadStatus";
 import { updateLeadActivityAPI } from "@/api/lead.api";
-import { Input } from "@/components/ui/input";
 import { UpdateLeadCardProps } from "@/types/lead";
 import { TimeSelector } from "../TimeSelector";
 
@@ -116,7 +115,7 @@ export const UpdateLeadCard = ({
         <CardHeader>
           <CardTitle className="text-lg">Update Lead</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className={`space-y-4 ${loading ? "pointer-events-none opacity-60" : ""}`}>
           {/* Status */}
 
           <div className="space-y-2">
@@ -179,11 +178,36 @@ export const UpdateLeadCard = ({
           </div>
 
           <Button
-            className="w-full bg-primary hover:bg-primary/90"
+            className="w-full bg-primary hover:bg-primary/90 disabled:opacity-60"
             onClick={handleSaveClick}
             disabled={loading}
           >
-            {loading ? "Saving..." : "Save Update"}
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <svg
+                  className="animate-spin h-4 w-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8z"
+                  />
+                </svg>
+                Updating...
+              </span>
+            ) : (
+              "Save Update"
+            )}
           </Button>
         </CardContent>
       </Card>
