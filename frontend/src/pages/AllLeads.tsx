@@ -143,10 +143,6 @@ export const AllLeads = () => {
     fetchMeta();
   }, []);
 
-  if (loading) {
-    return <FullPageLoader />;
-  }
-
   // When filters change: update filters, Reset pagination to page 1
 
   const handleFilterChange = (f: FiltersState) => {
@@ -177,6 +173,7 @@ export const AllLeads = () => {
             selectedIds={selectedIds}
             onSelectionChange={setSelectedIds}
             onRowClick={(id) => navigate(`/all-leads/${id}`)} 
+            loading={loading}
           />
         </div>
 

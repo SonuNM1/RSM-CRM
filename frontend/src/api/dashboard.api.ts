@@ -29,3 +29,7 @@ export const updateMeetingOutcomeAPI = (leadId: string, data: { happened: boolea
 
 
 export const getConvertedLeadsAPI = () => api.get("/api/dashboard/converted-leads");
+
+// admin or super admin 
+
+export const getSuperAdminDashboardStatsAPI = () => api.get("/api/dashboard/superadmin-stats");

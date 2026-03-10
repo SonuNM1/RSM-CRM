@@ -10,6 +10,7 @@ import mongoose from "mongoose";
 import { leadsSubmittedTemplate } from "../utils/emailTemplates/leadsSubmittedTemplate.js";
 import { leadsAssignedTemplate } from "../utils/emailTemplates/leadsAssignedTemplate.js";
 import sendEmail from "../utils/email.js";
+import { meetingScheduledTemplate } from "../utils/emailTemplates/meetingScheduledTemplate.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -491,6 +492,11 @@ export const addLeadActivity = async (req, res) => {
   try {
     const { leadId } = req.params;
     const { status, note, meetingDate, followUpDate } = req.body;
+    
+    console.log("REQ BODY:", { status, note, meetingDate, followUpDate });
+    console.log("meetingDate truthy?", !!meetingDate);
+    console.log("status check:", status === "Meeting Scheduled");
+
     const userId = req.user._id;
 
     const lead = await Lead.findById(leadId);
@@ -527,6 +533,52 @@ export const addLeadActivity = async (req, res) => {
     lead.activities.push(activity);
     await lead.save();
 
+    // send email to super admin when meeting is scheduled
+
+    if (status === "Meeting Scheduled" && meetingDate) {
+      try {
+        console.log("📧 Sending meeting notification email...");
+
+        const superAdmin = await User.findOne({ role: "Super_Admin" }).select(
+          "email name",
+        );
+        console.log("Super admin found:", superAdmin);
+
+        const bde = await User.findById(userId).select("name");
+        console.log("BDE found:", bde);
+
+        if (superAdmin) {
+          const meetingDateIST = new Date(meetingDate).toLocaleString("en-IN", {
+            timeZone: "Asia/Kolkata",
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          });
+          console.log("Meeting date IST:", meetingDateIST);
+
+          const { subject, html } = meetingScheduledTemplate({
+            superAdminName: superAdmin.name,
+            bdeName: bde?.name ?? "BDE",
+            leadName: lead.name,
+            website: lead.website,
+            meetingDateIST,
+            note: note || "",
+          });
+          console.log("Email subject:", subject);
+          console.log("Sending to:", superAdmin.email);
+
+          await sendEmail({ to: superAdmin.email, subject, html });
+          console.log("✅ Meeting notification email sent successfully");
+        } else {
+          console.log("❌ No super admin found in DB");
+        }
+      } catch (emailError) {
+        console.error("❌ Meeting notification email failed:", emailError);
+      }
+    }
     res.status(200).json({
       success: true,
       message: "Activity added successfully",

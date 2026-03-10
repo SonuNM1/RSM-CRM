@@ -224,6 +224,7 @@ export const getAllEmployee = async (req, res) => {
       role: 1,
       department: 1,
       status: 1,
+      createdAt: 1
     }).sort({ createdAt: -1 });
 
     res.status(200).json({

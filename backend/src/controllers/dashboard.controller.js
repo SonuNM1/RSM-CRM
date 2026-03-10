@@ -292,3 +292,98 @@ export const getConvertedLeads = async (req, res) => {
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+// Admin , Super-admin
+
+export const getSuperAdminDashboardStats = async (req, res) => {
+  try {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+    );
+
+    const [
+      totalLeads,
+      assignedLeads,
+      totalEmployees,
+      bdeCount,
+      emailCount,
+      adminCount,
+      meetingsThisMonth,
+      convertedThisMonth,
+      recentLeads,
+      teamPerformance,
+      statusDistribution,
+    ] = await Promise.all([
+      Lead.countDocuments({}),
+      Lead.countDocuments({ assignedTo: { $ne: null } }),
+      User.countDocuments({
+        role: { $in: ["BDE_Executive", "Email_Executive", "Admin"] },
+      }),
+      User.countDocuments({ role: "BDE_Executive" }),
+      User.countDocuments({ role: "Email_Executive" }),
+      User.countDocuments({ role: "Admin" }),
+      Lead.countDocuments({
+        meetingDate: { $gte: startOfMonth, $lte: endOfMonth },
+      }),
+      Lead.countDocuments({
+        status: "Converted",
+        updatedAt: { $gte: startOfMonth, $lte: endOfMonth },
+      }),
+      Lead.find({}) // ← add this
+        .select("name website status createdAt createdBy")
+        .populate("assignedTo", "name")
+        .sort({ createdAt: -1 })
+        .limit(7)
+        .lean(),
+      Lead.aggregate([
+        { $match: { status: "Converted", assignedTo: { $ne: null } } },
+        { $group: { _id: "$assignedTo", converted: { $sum: 1 } } },
+        { $sort: { converted: -1 } },
+        { $limit: 5 },
+        {
+          $lookup: {
+            from: "users",
+            localField: "_id",
+            foreignField: "_id",
+            as: "bde",
+          },
+        },
+        { $unwind: "$bde" },
+        { $project: { name: "$bde.name", converted: 1, _id: 0 } },
+      ]),
+      Lead.aggregate([
+        {
+          $match: { status: { $in: ["Interested", "Follow Up", "Converted"] } },
+        },
+        { $group: { _id: "$status", count: { $sum: 1 } } },
+        { $project: { status: "$_id", count: 1, _id: 0 } },
+      ]),
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      totalLeads,
+      assignedLeads,
+      unassignedLeads: totalLeads - assignedLeads,
+      totalEmployees,
+      bdeCount,
+      emailCount,
+      adminCount,
+      meetingsThisMonth,
+      convertedThisMonth,
+      recentLeads,
+      teamPerformance,
+      statusDistribution,
+    });
+  } catch (error) {
+    console.error("getSuperAdminDashboardStats error:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};

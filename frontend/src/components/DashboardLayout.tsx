@@ -35,15 +35,9 @@ const navItems = [
     roles: ["Super_Admin", "Admin", "Email_Executive", "BDE_Executive"],
   },
   {
-    label: "Invite Employee",
-    icon: UserPlus,
-    path: "/invite",
-    roles: ["Super_Admin", "Admin"],
-  },
-  {
-    label: "All Employees",
+    label: "Manage Employees",
     icon: Users,
-    path: "/all-employees",
+    path: "/manage-employees",
     roles: ["Super_Admin", "Admin"],
   },
   {

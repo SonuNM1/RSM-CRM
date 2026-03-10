@@ -21,7 +21,7 @@ interface Lead {
   status: string;
   assignedAt: string | null;
   assignedBy: string;
-  comments?: string 
+  comments?: string;
 }
 
 const BdeTimeline = () => {
@@ -32,55 +32,52 @@ const BdeTimeline = () => {
   const [refreshKey, setRefreshKey] = useState(0); // For triggering refresh
 
   const fetchLeadDetails = async () => {
-    if(!leadId){
-      navigate("/my-pipeline") ; 
-      return ; 
+    if (!leadId) {
+      navigate("/my-pipeline");
+      return;
     }
 
     try {
       setLoading(true);
-      
+
       const res = await getLeadByIdAPI(leadId);
 
-      if(res.data.success){
-        const apiLead = res.data.lead ; 
+      if (res.data.success) {
+        const apiLead = res.data.lead;
         setLead({
-          id: apiLead._id, 
-          name: apiLead.name, 
-          email: apiLead.email, 
-          phone: apiLead.phone, 
-          website: apiLead.website, 
-          status: apiLead.status, 
-          assignedAt: apiLead.assignedAt, 
-          assignedBy: apiLead.createdBy?.name || "-", 
-          comments: apiLead.comments 
-        })
+          id: apiLead._id,
+          name: apiLead.name,
+          email: apiLead.email,
+          phone: apiLead.phone,
+          website: apiLead.website,
+          status: apiLead.status,
+          assignedAt: apiLead.assignedAt,
+          assignedBy: apiLead.createdBy?.name || "-",
+          comments: apiLead.comments,
+        });
       } else {
-        toast.error("Lead not found", ERROR_TOAST) ; 
-        navigate("/my-pipeline") ;
+        toast.error("Lead not found", ERROR_TOAST);
+        navigate("/my-pipeline");
       }
     } catch (error) {
-      console.error("BDE Timeline error: ", error) ; 
-      toast.error(error?.response?.data?.message || "Failed to load lead details", ERROR_TOAST); 
-      navigate("/my-pipeline") ; 
+      console.error("BDE Timeline error: ", error);
+      toast.error(
+        error?.response?.data?.message || "Failed to load lead details",
+        ERROR_TOAST,
+      );
+      navigate("/my-pipeline");
     } finally {
-      setLoading(false) ;  
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchLeadDetails() ; 
-  }, [leadId, navigate, refreshKey])
+    fetchLeadDetails();
+  }, [leadId, navigate, refreshKey]);
 
   const handleRefresh = () => {
-    setRefreshKey(prev => prev + 1); // Trigger re-fetch
-  }
-
-  if (loading) {
-    return (
-      <FullPageLoader/>
-    );
-  }
+    setRefreshKey((prev) => prev + 1); // Trigger re-fetch
+  };
 
   if (!lead) {
     return (
@@ -96,11 +93,8 @@ const BdeTimeline = () => {
     <DashboardLayout title="Lead Timeline">
       <div className="min-h-screen bg-background">
         <div className="p-6 flex flex-col h-full">
-
-          {/* Header */}
-          
           <div className="mb-6 flex items-center gap-4">
-            <button 
+            <button
               onClick={() => navigate("/my-pipeline")}
               className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
@@ -109,36 +103,42 @@ const BdeTimeline = () => {
             </button>
             <div className="h-5 w-px bg-border" />
           </div>
-          
-          {/* Two-column layout */}
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-          
-            {/* Left 60% */}
-          
-            <div className="space-y-6 lg:col-span-3">
-              <LeadInfoCard
-                name={lead.name}
-                email={lead.email}
-                phone={lead.phone}
-                website={lead.website}
-                assignedDate={lead.assignedAt ? format(new Date(lead.assignedAt), "MMM d, yyyy") : "—"}
-                status={lead.status}
-              />
-              <ActivityTimeline leadId={leadId} refreshKey={refreshKey} assignedDate={lead.assignedAt} />
+          {!lead ? (
+            <p className="text-sm text-muted-foreground">
+              Loading lead details...
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+              <div className="space-y-6 lg:col-span-3">
+                <LeadInfoCard
+                  name={lead.name}
+                  email={lead.email}
+                  phone={lead.phone}
+                  website={lead.website}
+                  assignedDate={
+                    lead.assignedAt
+                      ? format(new Date(lead.assignedAt), "MMM d, yyyy")
+                      : "—"
+                  }
+                  status={lead.status}
+                />
+                <ActivityTimeline
+                  leadId={leadId}
+                  refreshKey={refreshKey}
+                  assignedDate={lead.assignedAt}
+                />
+              </div>
+              <div className="space-y-6 lg:col-span-2">
+                <ClientContextCard comments={lead.comments} />
+                <UpdateLeadCard
+                  leadId={leadId || ""}
+                  currentStatus={lead.status}
+                  onUpdate={handleRefresh}
+                />
+              </div>
             </div>
-            
-            {/* Right 40% */}
-
-            <div className="space-y-6 lg:col-span-2">
-              <ClientContextCard comments={lead.comments} />
-              <UpdateLeadCard
-                leadId={leadId || ""}
-                currentStatus={lead.status}
-                onUpdate={handleRefresh}
-              />
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </DashboardLayout>

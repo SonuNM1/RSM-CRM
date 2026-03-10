@@ -1,7 +1,16 @@
 import express from "express";
 import { protect } from "../middleware/auth.middleware.js";
 import { allowRoles } from "../middleware/role.middleware.js";
-import { getBdeDashboardStats, getEmailLeadStats, getFollowUps, getMeetingStats, getMeetings, updateMeetingOutcome, getConvertedLeads } from "../controllers/dashboard.controller.js";
+import { 
+    getBdeDashboardStats, 
+    getEmailLeadStats, 
+    getFollowUps, 
+    getMeetingStats, 
+    getMeetings, 
+    updateMeetingOutcome, 
+    getConvertedLeads, 
+    getSuperAdminDashboardStats 
+} from "../controllers/dashboard.controller.js";
 
 const router = express.Router() ; 
 
@@ -22,5 +31,9 @@ router.get("/meetings", protect, allowRoles("BDE_Executive", "Admin", "Super_Adm
 router.patch("/:leadId/meeting-outcome", protect, allowRoles("Admin", "Super_Admin"), updateMeetingOutcome) ;
 
 router.get("/converted-leads", protect, allowRoles("BDE_Executive"), getConvertedLeads) ;
+
+// admin or super admin 
+
+router.get("/superadmin-stats", protect, allowRoles("Super_Admin", "Admin"), getSuperAdminDashboardStats);
 
 export default router ; 

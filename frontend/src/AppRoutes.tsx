@@ -7,11 +7,9 @@ import AcceptInvite from "./pages/AcceptInvite";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import SettingsPage from "./pages/SettingsPage";
-import InviteEmployee from "./pages/InviteEmployee";
 import NotFound from "./pages/NotFound";
 import SubmitLeads from "./pages/SubmitLeads";
 import { AllLeads } from "./pages/AllLeads";
-import AllEmployees from "./pages/admin/AllEmployees";
 import AssignLeads from "./pages/admin/AssignLeads";
 import MyPipeline from "./pages/bde/MyPipeline";
 import MyLeads from "./pages/emailTeam/MyLeads";
@@ -23,12 +21,12 @@ import FollowUps from "./pages/bde/FollowUps";
 import ConvertedLeads from "./pages/bde/ConvertedLeads";
 import Scheduler from "./pages/bde/Scheduler";
 import Analytics from "./pages/admin/Analytics";
+import ManageEmployees from "./pages/admin/ManageEmployees";
 
 const AppRoutes = () => {
   return (
     <BrowserRouter>
       <Routes>
-
         {/* Public */}
 
         <Route path="/" element={<Index />} />
@@ -47,22 +45,22 @@ const AppRoutes = () => {
         <Route
           element={<ProtectedRoute allowedRoles={["Admin", "Super_Admin"]} />}
         >
-          <Route path="/invite" element={<InviteEmployee />} />
-          <Route path="/all-employees" element={<AllEmployees />} />
+          <Route path="/manage-employees" element={<ManageEmployees />} />
           <Route path="/assign-leads" element={<AssignLeads />} />
           <Route path="/all-leads/:leadId" element={<AdminLeadDetail />} />
           <Route path="/analytics" element={<Analytics />} />
-          <Route path="/meetings" element={<Meetings />} /> 
         </Route>
 
         {/* BDE */}
 
         <Route element={<ProtectedRoute allowedRoles={["BDE_Executive"]} />}>
           <Route path="/my-pipeline" element={<MyPipeline />} />
-          <Route path="/meetings" element={<Meetings />} />
           <Route path="/my-pipeline/:leadId" element={<BdeTimeline />} />
           <Route path="/dashboard/follow-ups" element={<FollowUps />} />
-          <Route path="/dashboard/converted-leads" element={<ConvertedLeads />} />
+          <Route
+            path="/dashboard/converted-leads"
+            element={<ConvertedLeads />}
+          />
           <Route path="/schedule" element={<Scheduler />} />
         </Route>
 
@@ -77,12 +75,26 @@ const AppRoutes = () => {
         <Route
           element={
             <ProtectedRoute
-              allowedRoles={["Admin", "Super_Admin", "BDE_Executive", "Email_Executive"]}
+              allowedRoles={["BDE_Executive", "Admin", "Super_Admin"]}
+            />
+          }
+        >
+          <Route path="/meetings" element={<Meetings />} />
+        </Route>
+
+        <Route
+          element={
+            <ProtectedRoute
+              allowedRoles={[
+                "Admin",
+                "Super_Admin",
+                "BDE_Executive",
+                "Email_Executive",
+              ]}
             />
           }
         >
           <Route path="/all-leads" element={<AllLeads />} />
-          
         </Route>
 
         <Route path="*" element={<NotFound />} />

@@ -60,11 +60,8 @@ api.interceptors.response.use(
           {},
           { withCredentials: true },
         );
-
         processQueue(null);
-
-        await new Promise((r) => setTimeout(r, 0));
-
+        await new Promise((r) => setTimeout(r, 100));
         return api(originalRequest);
       } catch (err) {
         processQueue(err);
