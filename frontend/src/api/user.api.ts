@@ -21,8 +21,7 @@ export const fetchLeadCreatorsAPI = () => {
 // fetch all employees 
 
 export const fetchEmployeesAPI = (search?: string) => {
-  return api.get(
-    `${BASE_URL}/api/users/employees`, 
+  return api.get(`/api/users/employees`, 
     {
         params: search ? {search} : {}
     }
