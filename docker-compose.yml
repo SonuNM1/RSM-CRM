@@ -4,6 +4,7 @@ services:
 
   backend:
     build: ./backend
+    image: rsmcrm-backend
     container_name: crm_backend
     ports:
       - "5000:5000"
@@ -13,6 +14,7 @@ services:
 
   frontend:
     build: ./frontend
+    image: rsmcrm-frontend
     container_name: crm_frontend
     ports:
       - "3000:80"

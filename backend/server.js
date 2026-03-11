@@ -19,7 +19,10 @@ app.use(express.json()) ;
 app.use(cookieParser())
 
 app.use(cors({
-    origin: 'http://localhost:8080',
+    origin: [
+        'http://localhost:8080',
+        "https://rsm-crm-frontend.vercel.app"
+    ],
     credentials: true 
 }))
 
